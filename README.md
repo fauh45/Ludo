@@ -1,5 +1,6 @@
-# Lütho
-Ludo is a game that originated from derived from the Indian game Pachisi. The game is written in C as part of DDP TUBES. The game Lütho rule are modified version of Ludo games.
+
+# Lüdtho™
+Ludo is a game that originated from derived from the Indian game Pachisi. The game is written in C as part of DDP TUBES. The game Lütdho™ rule are modified version of Ludo games.
 
 ## Game Design
 ### Player
