@@ -25,3 +25,12 @@ The game is over after few terms :
 
  1. The human player has won in first place
  2. or if three of the computer player has won
+
+## Compile Guide
+The game uses PDCurses as the library to graphic functions. So you'll have to make PDCurses according to your system.
+
+Usage of ncurses might work as syntax in PDCurses looks the same, but it's **untested**.
+
+To compile the game using gcc, use this command :
+
+    gcc Ludo.c path_to_PDCurses_libray 
