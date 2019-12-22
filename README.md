@@ -27,10 +27,18 @@ The game is over after few terms :
  2. or if three of the computer player has won
 
 ## Compile Guide
-The game uses PDCurses as the library to graphic functions. So you'll have to make PDCurses according to your system.
+The game uses nCurses as the library to graphic functions. So you'll have to compile nCurses according to your system.
 
-Usage of ncurses might work as syntax in PDCurses looks the same, but it's **untested**.
+For system not compatible with ncurses please use PDCurses with the version same as the submodules. First you'll have to make PDCurses yourself according to your system.
 
 To compile the game using gcc, use this command :
 
     gcc Ludo.c path_to_PDCurses_libray 
+
+For linux user, use ncurses. For debian user install it with :
+
+    sudo apt-get install libncurses5-dev libncursesw5-dev
+
+And to compile it using gcc:
+
+    gcc Ludo.c -lncurses

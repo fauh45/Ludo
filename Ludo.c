@@ -3,23 +3,30 @@
 #include <time.h>
 // #include <stdbool.h>
 
-// PDCurses Library
-#include "PDCurses/curses.h"
-
 /* OS Detection to make sure screen clearing and sleep function works */
 #if defined(__linux__) || defined(unix)
     #include <unistd.h>
+
+    // Ncurses for Linux user
+    #include <ncurses.h>
     char* os = "linux";
 #else
 #ifdef _WIN32
     #include <windows.h>
+
+    // PDCurses (port of ncurses) for windows user
+    #include "PDCurses/curses.h"
     char* os = "windows";
 #else
 #ifdef __APPLE__
     #include <unistd.h>
+
+    // Ncurses for the macs as well
+    #include <ncurses.h>
     char* os = "macos";
 #else
     #include <unistd.h>
+    #include <ncurses.h>
     char* os = "unknown";
 #endif
 #endif
@@ -51,7 +58,7 @@ typedef struct
 
 WINDOW *board[15][15]; // Ludo board (graphically)
 
-/* Function Declaration */
+/* Function Prototype */
 
 /*
    Initial State : Screen contains other elements
@@ -83,13 +90,6 @@ int RollADice();
 bool hasColour();
 
 /*
-   Input : None
-   Output : True if Console big enough to play the game, otherwise False
-   Author : Muhammad Fauzan L.
-*/
-bool isBigEnough();
-
-/*
    Input : int line -> how much rows the new window have
            int collumns -> how much collumns the new window have
            int starty -> the starting row position of the new window
@@ -114,6 +114,34 @@ void showBoard();
 */
 void destroyBoard();
 
+/*
+    Initial State : Logo is not shown
+    Final State : Logo is in the screen
+    Author : Muhammad Fauzan L.
+*/
+void showLogo();
+
+/*
+    Initial State : Menu is not shown
+    Final State : Menu is shown and user have entered a choice
+    Author : Muhammad Fauzan L.
+*/
+void showMainMenu(int *choice);
+
+/*
+    Input : None
+    Output : The User choice on showMainMenu and Clear screen
+    Author : Muhammad Fauzan L.
+*/
+int getUserChoiceinMenu();
+
+/*
+    Input : WINDOW *win -> the target window to get the middle horizontal position
+            int width -> the width of object
+    Output : leftmost position of the object such that the object is in the middle of said screen
+    Author : Muhammad Fauzan L.
+*/
+int getMiddleX(WINDOW *win, int len);
 
 int main()
 {
@@ -131,6 +159,22 @@ int main()
     init_pair(BOARD_WHITE, COLOR_BLACK, COLOR_WHITE);
     init_pair(BOARD_BLACK, COLOR_WHITE, COLOR_BLACK);
 
+    // Check for console capabilities
+    if (!has_colors())
+    {
+        printw("No color support on console");
+        exit(1);
+    }
+    else if (!isBigEnough())
+    {
+        printw("Console not big enough for the game");
+        exit(2);
+    }
+
+    showBoard();
+
+    getch();
+
     /* 
         Add more code here!
     */
@@ -139,6 +183,8 @@ int main()
     endwin();
     return 0;   
 }
+
+/* Function Body */
 
 WINDOW *newWindow(int line, int collumns, int starty, int startx)
 {
@@ -416,26 +462,169 @@ void destroyBoard()
     }
 }
 
+bool hasColour()
+{
+    return has_colors();
+}
+
+int getMiddleX(WINDOW *win, int len)
+{
+    int x;
+    int y;
+    getmaxyx(win, y, x);
+
+    return (x / 2) - (len / 2);
+}
+
+void showLogo()
+{
+    WINDOW *logo;
+    FILE *logo_file;
+    int i;
+    char logo_data[125];
+
+    // As logo is an ASCII art it's easier to print from a file
+    // Open it as read-only
+    logo_file = fopen("logo.txt", "r");
+
+    // File not found or cannot be openned
+    if (logo_file == NULL)
+    {
+        erase();
+
+        printw("Logo file not found");
+        exit(3);
+    }
+
+    // New widow to put the logo
+    // Horizontally center
+    logo = newWindow(10, 41, getMiddleX(stdscr, 41), 1);
+
+    // Show the logo
+    for (i = 0; i < 9; i++)
+    {
+        if (fgets(logo_data, 125, logo_file) != NULL)
+        {
+            mvwprintw(logo, i, 0, logo_data);
+        }
+        else
+        {
+            // If somehow the file reaches End-Of-File
+            mvwprintw(logo, i, 0, "EOF!");
+        }
+    }
+    
+    // Close the file and refresh the screen
+    fclose(logo_file);
+    wrefresh(logo);
+
+    // Delete the window as it's not used anymore
+    delwin(logo);
+}
+
+void showMainMenu(int *choice)
+{
+    WINDOW *mainmenu;
+    int i, highlight = 0, position;
+    
+    // Options for the user
+    char options[4][10] = {"New Game", "Resume", "Highscore", "Exit"};
+    char item[9];
+    char ch;
+
+    // Show logo before the menu
+    showLogo();
+
+    // Create new window for the menu
+    mainmenu = newWindow(10, 57, getMiddleX(stdscr, 57), 12);
+    box(mainmenu, 0, 0);
+
+    // Enable keypad mode for key up and down
+    keypad(mainmenu, true);
+
+    // Make sure what has been entered is not shown
+    noecho();
+
+    // Hide the cursor
+    curs_set(0);
+    
+    // Loop until has been inputed
+    while (1)
+    {
+        // Show the options
+        for (i = 0; i < 4; i++)
+        {
+            position = getMiddleX(mainmenu, strlen(options[i]));
+
+            // Show the highlighted options with highlights
+            if (i == highlight) wattron(mainmenu, A_REVERSE);
+
+            mvwprintw(mainmenu, i+1, position, options[i]);
+
+            if (i == highlight) wattroff(mainmenu, A_REVERSE);
+        }
+
+        // Get user input
+        ch = wgetch(mainmenu);
+        
+        if (ch == (char) KEY_UP)
+        {
+            highlight--;
+            highlight = (highlight < 0) ? 3 : highlight;
+        }
+        else if (ch == (char) KEY_DOWN)
+        {
+            highlight++;
+            highlight = (highlight > 3) ? 0 : highlight;
+        }
+        else if (ch == 10)  // Somehow the usage of KEY_ENTER doesn't work, so char 10 is used instead
+        {
+            *choice = highlight;
+            break;
+        }
+    }
+
+    // After user input clear out the border and window as
+    // it is not used anymore
+    wborder(mainmenu, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '); 
+    delwin(mainmenu);
+}
+
+int getUserChoiceinMenu()
+{
+    int choice;
+
+    // Show the user the menu and get the choice from it
+    showMainMenu(&choice);
+
+    // Clean out the window
+    erase();
+
+    // printw("%d", choice);
+    refresh();
+
+    return choice;
+}
+
 void ClearScreen()
 {
-    if (os == "windows")
-    {
-        system("cls");
-    }
-    else if (os == "linux" || os == "macos")
-    {
+    #ifdef _WIN32
+        System("cls");
+    #else
         system("clear");
-    }
+    #endif
 }
 
 void WaitForSecond(int time)
 {
-    if(os == "windows")
-    {
-        time = time * 1000; //windows uses ms instead of seconds
-    }
-
-    Sleep(time);
+    // Check for platform as sleep function are different
+    // in different OS
+    #ifdef _WIN32
+        // Windows uses ms instead seconds
+        Sleep(time * 1000);
+    #else
+        sleep(time);
+    #endif
 }
 
 int RollADice()
