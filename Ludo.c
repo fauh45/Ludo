@@ -185,12 +185,23 @@ bool isFileExist(char fileName[]);
 /*
     Initial State : Bot data are empty (value unknown)
     Input : 
-    @botIndexes integer contains bot index from -1 to 2
-                0 for Jörgen, 1 for Hans, and 2 for Mülle. value -1 means there's no player there
+    @botIndexes integer contains bot index from 0 to 2
+                0 for Jörgen, 1 for Hans, and 2 for Müller
+    @colour integer containing the colour index data, 0 -> red, 1 -> green, 2 -> yellow, 3 -> blue.
+    @index index for player data array, from 1-3, as human player always in the first index
     Final State : Bot player data are initialized
     Author : Muhammad Fauzan L.
 */
-void initBotPlayerData(int botIndexes, char colour);
+void initBotPlayerData(int botIndexes, int colour, int index);
+
+/*
+    Initial State : Human player data are empty (value unknown)
+    Input : 
+    @colour integer containing the colour index data, 0 -> red, 1 -> green, 2 -> yellow, 3 -> blue.
+    Final State : Human player data are initialized
+    Author : Muhammad Fauzan L.
+*/
+void initHumanPlayerData(int colour);
 
 /*
     Initial State : Player data (bot and human) are empty (value unknown)
@@ -781,6 +792,211 @@ void showNewGameMenu(int choice[3])
 
     // Remove the window as it's not used anymore
     delwin(botchoice);
+}
+
+void initHumanPlayerData(int colour)
+{
+    int i;
+    char col;
+    
+    switch (colour)
+    {
+    case 0:
+        col = 'r';
+        break;
+    
+    case 1:
+        col = 'g';
+        break;
+
+    case 2:
+        col = 'y';
+        break;
+
+    case 3:
+        col = 'b';
+        break;
+
+    default:
+        break;
+    }
+
+    players[0].col = col;
+    players[0].comp = false;
+    players[0].move = 0;
+
+    for (i = 0; i < 4; i++)
+    {
+        switch (col)
+        {
+        case 'r':
+            red[i].col = 'r';
+            red[i].ind = i;
+            red[i].pos = 0;
+            red[i].safe = false;
+
+            break;
+        
+        case 'g':
+            green[i].col = 'g';
+            green[i].ind = i;
+            green[i].pos = 0;
+            green[i].safe = false;
+            
+            break;
+
+        case 'y':
+            yellow[i].col = 'y';
+            yellow[i].ind = i;
+            yellow[i].pos = 0;
+            yellow[i].safe = false;
+            
+            break;
+
+        case 'b':
+            blue[i].col = 'b';
+            blue[i].ind = i;
+            blue[i].pos = 0;
+            blue[i].safe = false;
+            
+            break;
+
+        default:
+            break;
+        }
+    }
+    
+}
+
+void initBotPlayerData(int botIndexes, int colour, int index)
+{
+    int i;
+    char col;
+    char botIndex;
+
+    switch (colour)
+    {
+    case 0:
+        col = 'r';
+        break;
+    
+    case 1:
+        col = 'g';
+        break;
+
+    case 2:
+        col = 'y';
+        break;
+
+    case 3:
+        col = 'b';
+        break;
+
+    default:
+        break;
+    }
+
+    switch (botIndexes)
+    {
+    case 0:
+        botIndex = 'j';
+        break;
+
+    case 1:
+        botIndex = 'h';
+        break;
+
+    case 2:
+        botIndex = 'm';
+        break;
+    
+    default:
+        break;
+    }
+
+    players[index].col = col;
+    players[index].comp = true;
+    players[index].comptype = botIndex;
+    players[index].move = 0;
+
+    for (i = 0; i < 4; i++)
+    {
+        switch (col)
+        {
+        case 'r':
+            red[i].col = 'r';
+            red[i].ind = i;
+            red[i].pos = 0;
+            red[i].safe = false;
+
+            break;
+        
+        case 'g':
+            green[i].col = 'g';
+            green[i].ind = i;
+            green[i].pos = 0;
+            green[i].safe = false;
+            
+            break;
+
+        case 'y':
+            yellow[i].col = 'y';
+            yellow[i].ind = i;
+            yellow[i].pos = 0;
+            yellow[i].safe = false;
+            
+            break;
+
+        case 'b':
+            blue[i].col = 'b';
+            blue[i].ind = i;
+            blue[i].pos = 0;
+            blue[i].safe = false;
+            
+            break;
+            
+        default:
+            break;
+        }
+    }
+}
+
+void initPlayerData(int botIndexes[3])
+{
+    int randTemp[4]; // Used for temporary storage of randomized number
+    int i, j; // Looping variable
+    int temp;
+
+    i = 0;
+    srand(time(NULL));
+
+    while (i < 4)
+    {
+        temp = rand() % 4;
+
+        for (j = 0; j < i; j++)
+        {
+            if (randTemp[j] == temp)
+            {
+                break;
+            }
+        }
+
+        if (j == i)
+        {
+            randTemp[i++] == temp;
+        }
+    }
+
+    initHumanPlayerData(randTemp[0]);
+
+    i = 0;
+    j = 1;
+    while (botIndexes[i] != -1 && i < 2)
+    {
+        initBotPlayerData(botIndexes[i], randTemp[j], j);
+    }
+    
 }
 
 void ClearScreen()
