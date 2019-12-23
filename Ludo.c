@@ -46,7 +46,8 @@ typedef struct
 {
     char col; //Color of the tokens, corresponding to the player colour
     int ind; //Index of the tokens (1 - 4) for each player
-    int pos; //Position of the tokens
+    int pos; //Position of the tokens (global position)
+    int relpos; //Realtive Position from the start position
     bool safe; //Is the token in safezone
 } Tokens;
 
@@ -75,6 +76,9 @@ Tokens red[4];
 Tokens green[4];
 Tokens yellow[4];
 Tokens blue[4];
+
+// Number of bots
+int numberOfBots;
 
 /* Function Prototype */
 
@@ -207,11 +211,50 @@ void initHumanPlayerData(int colour);
     Initial State : Player data (bot and human) are empty (value unknown)
     Input :
     @botIndexes integer array with maximum lenght of 3 contains bot index from -1 to 2
-                0 for Jörgen, 1 for Hans, and 2 for Mülle. value -1 means there's no player there
+                0 for Jörgen, 1 for Hans, and 2 for Müller. value -1 means there's no player there
     Final State : Player data (bot and human) are initialized with inputted data
     Author : Muhammad Fauzan L.
 */
 void initPlayerData(int botIndexes[3]);
+
+/*
+    Input : 
+    @token the current token
+    @index the place where the current tokens wants to move
+    Output : token data of opponents if there's opponents on the index,
+             otherwise token data with colour 'n'
+    Author : Muhammad Fauzan L.
+*/
+Tokens isThereOpponents(Tokens token, int index);
+
+/*
+    Initial State : Token in initial position
+    Input :
+    @token the current token
+    @index the place where the current tokens wants to move
+    @diceroll number from 1 to 6 of the dice roll
+    Final State : Token in the desired position or back to home base if failed the suit
+    Author : Muhammad Fauzan L.
+*/
+void moveToken(Tokens token, int index, int diceroll);
+
+/*
+    Input : 
+    @token the current token
+    @diceroll number from 1 to 6 of the dice roll
+    Output : true if the token must be transitioned into safezone, otherwise false
+    Author : Muhammad Fauzan L.
+*/
+bool isTransitionToSafezone(Tokens token, int diceroll);
+
+/*
+    Input : 
+    @token1 the first token
+    @token2 the second token
+    Output : Distance between first token and second token
+    Author : Muhammad Fauzan L.
+*/
+int distanceBetween(Tokens token1, Tokens token2);
 
 int main()
 {
@@ -675,7 +718,6 @@ void showNewGameMenu(int choice[3])
 {
     WINDOW *botchoice;
 
-    int numberOfBots;
     int i, j, highlight = 0, position;
 
     // Options for bots that user can choose
@@ -833,6 +875,7 @@ void initHumanPlayerData(int colour)
             red[i].col = 'r';
             red[i].ind = i;
             red[i].pos = 0;
+            red[i].relpos = 0;
             red[i].safe = false;
 
             break;
@@ -841,6 +884,7 @@ void initHumanPlayerData(int colour)
             green[i].col = 'g';
             green[i].ind = i;
             green[i].pos = 0;
+            green[i].relpos = 0;
             green[i].safe = false;
             
             break;
@@ -849,6 +893,7 @@ void initHumanPlayerData(int colour)
             yellow[i].col = 'y';
             yellow[i].ind = i;
             yellow[i].pos = 0;
+            yellow[i].relpos = 0;
             yellow[i].safe = false;
             
             break;
@@ -857,6 +902,7 @@ void initHumanPlayerData(int colour)
             blue[i].col = 'b';
             blue[i].ind = i;
             blue[i].pos = 0;
+            blue[i].relpos = 0;
             blue[i].safe = false;
             
             break;
@@ -927,6 +973,7 @@ void initBotPlayerData(int botIndexes, int colour, int index)
             red[i].col = 'r';
             red[i].ind = i;
             red[i].pos = 0;
+            red[i].relpos = 0;
             red[i].safe = false;
 
             break;
@@ -935,6 +982,7 @@ void initBotPlayerData(int botIndexes, int colour, int index)
             green[i].col = 'g';
             green[i].ind = i;
             green[i].pos = 0;
+            green[i].relpos = 0;
             green[i].safe = false;
             
             break;
@@ -943,6 +991,7 @@ void initBotPlayerData(int botIndexes, int colour, int index)
             yellow[i].col = 'y';
             yellow[i].ind = i;
             yellow[i].pos = 0;
+            yellow[i].relpos = 0;
             yellow[i].safe = false;
             
             break;
@@ -990,13 +1039,87 @@ void initPlayerData(int botIndexes[3])
 
     initHumanPlayerData(randTemp[0]);
 
-    i = 0;
-    j = 1;
-    while (botIndexes[i] != -1 && i < 2)
+    for (i = 0; i < numberOfBots; i++)
     {
-        initBotPlayerData(botIndexes[i], randTemp[j], j);
+        initBotPlayerData(botIndexes[i], randTemp[j], i+1);
     }
     
+}
+
+Tokens isThereOpponents(Tokens token, int index)
+{
+    int i;
+    
+    // Loops every array of token colour
+    for (i = 0; i < 4; i++)
+    {
+        // Oppponents is there only if they're not the same colour, have the same positions
+        // and not in the safezone
+        if (red[i].col != token.col && red[i].pos == index && !red[i].safe)
+        {
+            return red[i];
+        }
+        else if (green[i].col != token.col && green[i].pos == index && !green[i].safe)
+        {
+            return green[i];
+        }
+        else if (blue[i].col != token.col && blue[i].pos == index && !blue[i].safe)
+        {
+            return blue[i];
+        }
+        else if (yellow[i].col != token.col && yellow[i].pos == index && !yellow[i].safe)
+        {
+            return yellow[i];
+        }
+        
+    }
+
+    // If none were found return with colour n (null)
+    token.col = 'n';
+    return token;
+}
+
+bool isTransitionToSafezone(Tokens token, int diceroll)
+{
+    return (token.relpos + diceroll) > 52;
+}
+
+void moveToken(Tokens token, int index, int diceroll)
+{
+    Tokens temp; // Temporarly put opponents check
+
+    if (isTransitionToSafezone(token, diceroll))
+    {
+        token.safe = true;
+        token.pos = (token.pos + diceroll) - 52;
+        token.relpos = (token.pos + diceroll) - 52;
+    }
+    else
+    {
+        temp = isThereOpponents(token, index);
+
+        if (temp.col == 'n')
+        {
+            token.pos = index;
+            token.relpos += diceroll;
+        }
+        else
+        {
+            /*
+                Add Suit menu here
+            */
+        }
+        
+    }
+}
+
+int distanceBetween(Tokens token1, Tokens token2)
+{
+    int distance = 0; // Distance between token1 and 2
+    int token1pos = token1.pos; // Temporary variable for positions
+    int token2pos = token2.pos;
+
+    /* Add calculation here */
 }
 
 void ClearScreen()
