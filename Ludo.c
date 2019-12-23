@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 // #include <stdbool.h>
 
 /* OS Detection to make sure screen clearing and sleep function works */
@@ -53,10 +54,27 @@ typedef struct
 {
     char col; //Color of the player
     bool comp; //Is the player a computer or not
+    char comptype; // Type of computers
     int move; //How much the player has move
 } Player;
 
 WINDOW *board[15][15]; // Ludo board (graphically)
+
+Player players[4]; // List of players
+
+/*
+    Token arrays for each colours
+
+    char col value per colour :
+    Red -> r
+    Green -> g
+    Yellow -> y
+    Blue -> b
+*/
+Tokens red[4];
+Tokens green[4];
+Tokens yellow[4];
+Tokens blue[4];
 
 /* Function Prototype */
 
@@ -90,11 +108,12 @@ int RollADice();
 bool hasColour();
 
 /*
-   Input : int line -> how much rows the new window have
-           int collumns -> how much collumns the new window have
-           int starty -> the starting row position of the new window
-           int startx -> the starting collumns position of the new window
-           (starting position are the top leftmost position of new window)
+   Input : 
+    @line how much rows the new window have
+    @collumns how much collumns the new window have
+    @starty the starting row position of the new window
+    @startx the starting collumns position of the new window 
+            (starting position are the top leftmost position of new window)
    Output : New window in WINDOW data type
    Author : Muhammad Fauzan L.
 */
@@ -124,6 +143,8 @@ void showLogo();
 /*
     Initial State : Menu is not shown
     Final State : Menu is shown and user have entered a choice
+    Input and Outout :
+    @choice an int with the value of choice, 0 means new game, 1 means resume, 2 means highscore, and 3 means exit
     Author : Muhammad Fauzan L.
 */
 void showMainMenu(int *choice);
@@ -136,18 +157,63 @@ void showMainMenu(int *choice);
 int getUserChoiceinMenu();
 
 /*
-    Input : WINDOW *win -> the target window to get the middle horizontal position
-            int width -> the width of object
+    Initial State : Cleared screen
+    Final State : New Game menu is shown and the user have enetered a choice
+    Input and Output :
+    @choice an array with lenght of 3, consisting of bot id, 0 for Jörgen, 1 for Hans, and 2 for Müller
+            value -1 means the slot must be empty
+    Author : Muhammad Fauzan L.
+*/
+void showNewGameMenu(int choice[3]);
+
+/*
+    Input : 
+    @win the target window to get the middle horizontal position
+    @width the width of object
     Output : leftmost position of the object such that the object is in the middle of said screen
     Author : Muhammad Fauzan L.
 */
 int getMiddleX(WINDOW *win, int len);
+
+/*
+    Input : File name
+    Output : True if file exist and false if it doesn't
+    Author : Muhammad Fauzan L.
+*/
+bool isFileExist(char fileName[]);
+
+/*
+    Initial State : Bot data are empty (value unknown)
+    Input : 
+    @botIndexes integer contains bot index from -1 to 2
+                0 for Jörgen, 1 for Hans, and 2 for Mülle. value -1 means there's no player there
+    Final State : Bot player data are initialized
+    Author : Muhammad Fauzan L.
+*/
+void initBotPlayerData(int botIndexes, char colour);
+
+/*
+    Initial State : Player data (bot and human) are empty (value unknown)
+    Input :
+    @botIndexes integer array with maximum lenght of 3 contains bot index from -1 to 2
+                0 for Jörgen, 1 for Hans, and 2 for Mülle. value -1 means there's no player there
+    Final State : Player data (bot and human) are initialized with inputted data
+    Author : Muhammad Fauzan L.
+*/
+void initPlayerData(int botIndexes[3]);
 
 int main()
 {
     // Curses mode intialization
     initscr();
     
+    // Check for console capabilities
+    if (!has_colors())
+    {
+        printw("No color support on console");
+        exit(1);
+    }
+
     // Starts out colour mode of curses
     start_color();
 
@@ -159,19 +225,7 @@ int main()
     init_pair(BOARD_WHITE, COLOR_BLACK, COLOR_WHITE);
     init_pair(BOARD_BLACK, COLOR_WHITE, COLOR_BLACK);
 
-    // Check for console capabilities
-    if (!has_colors())
-    {
-        printw("No color support on console");
-        exit(1);
-    }
-    else if (!isBigEnough())
-    {
-        printw("Console not big enough for the game");
-        exit(2);
-    }
-
-    showBoard();
+    printw("%d", RollADice());
 
     getch();
 
@@ -492,7 +546,7 @@ void showLogo()
     {
         erase();
 
-        printw("Logo file not found");
+        printw("Logo file not found / permission problems");
         exit(3);
     }
 
@@ -606,6 +660,129 @@ int getUserChoiceinMenu()
     return choice;
 }
 
+void showNewGameMenu(int choice[3])
+{
+    WINDOW *botchoice;
+
+    int numberOfBots;
+    int i, j, highlight = 0, position;
+
+    // Options for bots that user can choose
+    char bot_options[4][10] = {"Jörgen", "Hans", "Müller"};
+
+    // Temporary storage for input
+    char item[9];
+    char ch;
+
+    // Initialize the variables
+    for (i = 0; i < 4; i++)
+    {
+        choice[i] = -1;
+    }
+    numberOfBots = 0;
+
+    // Show the logo beforehand
+    showLogo();
+
+    // Create new window
+    botchoice = newWindow(10, 57, getMiddleX(stdscr, 57), 12);
+    box(botchoice, 0, 0);
+
+    // Un-hide the cursor
+    curs_set(1);
+
+    // Make sure the user can see what they have inputted before entering it
+    echo();
+
+    wrefresh(botchoice);
+
+    while (1)
+    {
+        mvwprintw(botchoice, 3, 4, "How many bots do you want to play with (1 - 3):");
+        wmove(botchoice, 3, strlen("How many bots do you want to play with (1 - 3):") + 4);
+
+        // Get the user input
+        wscanw(botchoice, "%d", &numberOfBots);
+        
+        // Check for validity of input
+        if (numberOfBots > 0 && numberOfBots < 4)
+        {
+            break;
+        }
+        
+        wrefresh(botchoice);
+    }
+
+    // Cleared out the box for next stage of menu
+    werase(botchoice);
+
+    // Re-box the window as erase also remove the box from the window
+    box(botchoice, 0, 0);
+
+    // Enable usage of keypad
+    keypad(botchoice, true);
+
+    // Don't show the user input
+    noecho();
+
+    // Hide the cursor
+    curs_set(0);
+
+    // Loops the input stage as much as the user has inputted
+    for (j = 0; j < numberOfBots; j++)
+    {
+        // Reset the highlight index each time
+        highlight = 0;
+
+        while (1)
+        {
+            // Show the current bot number
+            mvwprintw(botchoice, 1, getMiddleX(botchoice, strlen("Bot no. 1")), "Bot no. %d", j + 1);
+
+            // Shows the bot options
+            for (i = 0; i < 3; i++)
+            {
+                // Get the horizontal center for each string
+                position = getMiddleX(botchoice, strlen(bot_options[i]));
+
+                // Highlight it for the selected
+                if (i == highlight)
+                    wattron(botchoice, A_REVERSE);
+
+                mvwprintw(botchoice, i + 2, position, bot_options[i]);
+
+                if (i == highlight)
+                    wattroff(botchoice, A_REVERSE);
+            }
+
+            // Get the user actions
+            ch = wgetch(botchoice);
+
+            if (ch == (char)KEY_UP)
+            {
+                highlight--;
+                highlight = (highlight < 0) ? 2 : highlight;
+            }
+            else if (ch == (char)KEY_DOWN)
+            {
+                highlight++;
+                highlight = (highlight > 2) ? 0 : highlight;
+            }
+            else if (ch == 10)
+            {
+                choice[j] = highlight;
+                break;
+            }
+        }
+    }
+
+    // Remove borders of the box
+    wborder(botchoice, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+
+    // Remove the window as it's not used anymore
+    delwin(botchoice);
+}
+
 void ClearScreen()
 {
     #ifdef _WIN32
@@ -624,6 +801,16 @@ void WaitForSecond(int time)
         Sleep(time * 1000);
     #else
         sleep(time);
+    #endif
+}
+
+bool isFileExist(char fileName[])
+{
+    // Different syntax of access on widows
+    #ifdef _WIN32
+        return (_access(fileName, F_OK) != -1);
+    #else
+        return (access(fileName, F_OK) != -1);
     #endif
 }
 
