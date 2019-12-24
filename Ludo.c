@@ -230,13 +230,71 @@ Tokens isThereOpponents(Tokens token, int index);
 /*
     Initial State : Token in initial position
     Input :
-    @token the current token
-    @index the place where the current tokens wants to move
-    @diceroll number from 1 to 6 of the dice roll
-    Final State : Token in the desired position or back to home base if failed the suit
-    Author : Muhammad Fauzan L.
+    @diceNum the dice number that shown up
+    @whosTurn [pemain yang sedang giliran]
+    Final State : Token in the desired position, back to home base if failed the suit, or can't move
+    Author : Marissa Nur Amalia
 */
-void moveToken(Tokens token, int index, int diceroll);
+void move();
+
+/*
+    Initial State : [token ingin dicek posibilitas geraknya (?)]
+    Input :
+    @diceNum the dice number that shown up
+    @pos the token's position that want to check
+    @safe is the token in the safe zone or not
+    Output : the possibility of token to move, to out from home, or can't move
+    Author : Marissa Nur Amalia
+*/
+char possibleMove(int diceNum, int pos, bool safe);
+
+/*
+    Initial State : The input number of choice is want to be checked
+    Input :
+    @choice choice of tokens
+    Output : is the choice valid or not
+    Author : Marissa Nur Amalia
+*/
+bool validateInputToken(int choosenToken);
+
+/*
+    Initial State : Token in initial position
+    Input :
+    @diceNum the dice number that shown up
+    @whosTurn [pemain yang sedang giliran]
+    @numOfToken the index number of token that want to move
+    Final State : the token is in desired position
+    Author : Marissa Nur Amalia
+*/
+void moveForward(int diceNum, int whosTurn, int numOfToken);
+
+/*
+    Initial State : Token in initial position
+    Input :
+    @diceNum the dice number that shown up
+    @whosTurn [pemain yang sedang giliran]
+    Final State : Token is back to home
+    Author : Marissa Nur Amalia
+*/
+void toHomeBase(int numOfToken, int whosTurn);
+
+/*
+    Initial State : Token is in home
+    Input :
+    @diceNum the dice number that shown up
+    @whosTurn [pemain yang sedang giliran]
+    Final State : Token is out home
+    Author : Marissa Nur Amalia
+*/
+void outFromHomeBase(int numOfToken, int whosTurn);
+
+/*
+    Input :
+    @count the number of the players take turn
+    Output : players that takes turn
+    Author : Marissa Nur Amalia
+*/
+int whosTurn(int count, int numOfPlayers);
 
 /*
     Input : 
@@ -278,7 +336,7 @@ int main()
     init_pair(BOARD_YELLOW, COLOR_WHITE, COLOR_YELLOW);
     init_pair(BOARD_WHITE, COLOR_BLACK, COLOR_WHITE);
     init_pair(BOARD_BLACK, COLOR_WHITE, COLOR_BLACK);
-
+        
     printw("%d", RollADice());
 
     getch();
@@ -1033,7 +1091,7 @@ void initPlayerData(int botIndexes[3])
 
         if (j == i)
         {
-            randTemp[i++] == temp;
+            randTemp[i++] = temp;
         }
     }
 
@@ -1084,43 +1142,16 @@ bool isTransitionToSafezone(Tokens token, int diceroll)
     return (token.relpos + diceroll) > 52;
 }
 
-void moveToken(Tokens token, int index, int diceroll)
-{
-    Tokens temp; // Temporarly put opponents check
 
-    if (isTransitionToSafezone(token, diceroll))
-    {
-        token.safe = true;
-        token.pos = (token.pos + diceroll) - 52;
-        token.relpos = (token.pos + diceroll) - 52;
-    }
-    else
-    {
-        temp = isThereOpponents(token, index);
 
-        if (temp.col == 'n')
-        {
-            token.pos = index;
-            token.relpos += diceroll;
-        }
-        else
-        {
-            /*
-                Add Suit menu here
-            */
-        }
-        
-    }
-}
-
-int distanceBetween(Tokens token1, Tokens token2)
-{
-    int distance = 0; // Distance between token1 and 2
-    int token1pos = token1.pos; // Temporary variable for positions
-    int token2pos = token2.pos;
-
-    /* Add calculation here */
-}
+//int distanceBetween(Tokens token1, Tokens token2)
+//{
+//    int distance = 0; // Distance between token1 and 2
+//    int token1pos = token1.pos; // Temporary variable for positions
+//    int token2pos = token2.pos;
+//
+//    /* Add calculation here */
+//}
 
 void ClearScreen()
 {
@@ -1159,3 +1190,203 @@ int RollADice()
 
     return rand() % 6 + 1;
 }
+
+int whosTurn(int count, int numOfPlayers)
+{
+    return (count%numOfPlayers)+1;
+}
+
+void move(int diceNum, int whosTurn)
+{
+    int dadu, pos[4];
+    char posmov[4];
+    Tokens temp[4];
+    
+    switch (whosTurn) {
+        case 1:
+            for (int i=0; i<4; i++) {
+                temp[i].pos = red[i].pos; //bisa diganti tokens[i].pos
+                temp[i].safe = red[i].safe;
+            }
+            temp[0].
+            break;
+        case 2:
+            for (int i=0; i<4; i++) {
+                temp[i].pos = green[i].pos; //bisa diganti tokens[i+4].pos
+                temp[i].safe = green[i].safe;
+            }
+            break;
+        case 3:
+            for (int i=0; i<4; i++) {
+                temp[i].pos = yellow[i].pos; //bisa diganti tokens[i+7].pos
+                temp[i].safe = green[i].safe;
+            }
+            break;
+           
+        case 4:
+            for (int i=0; i<4; i++) {
+                temp[i].pos = blue[i].pos; //bisa diganti tokens[i+10].pos
+                temp[i].safe = blue[i].safe;
+            }
+            break;
+            
+        default:
+            break;
+    }
+
+    printf("Tokens that can be move : ");
+    int j=0;
+    for (int i=0; i<4; i++) {
+        posmov[i] = possibleMove(dadu, temp[i].pos, temp[i].safe);
+            if (posmov[i] == 's') {
+                j++
+                continue;
+            }
+            else printf("%d ", i+1);
+        if (j == 4) {
+            printf("There's no tokens that can be move");
+            //end the turn
+        }
+    }
+    printf("\n");
+    
+    //check if the player comp or not
+    if (!players[whosTurn].comp)
+    {
+        int pilihantoken;
+            printf("Choose the token : ");
+            scanf("%d", &pilihantoken);
+            while (!validateInput(pilihantoken) || ((posmov[pilihantoken-1] == 's'))) {
+                    printf("The input isn't valid, please reenter the tokens!!\n");
+                    printf("Choose the token : ");
+                    scanf("%d", &pilihantoken);
+                }
+        if (posmov[pilihantoken-1] == 'm') {
+            printf("Token %d move %d step to board no-%d\n", pilihantoken, dadu, temp[pilihantoken-1].pos+dadu);
+            
+            //check if the token can move to safe zone or not
+            //if true then the pos is (-) number of board that
+            //if the token can move forward to safe zone then the turn is over
+            
+            //check if there is opponents with modul isThere opponents
+            //if there is opponents then the player have to suit
+            //the player that win can move forward and the player that lose have to back to home
+            
+            //end the turn
+        } else if (posmov[pilihantoken] == 'o'){
+            printf("Token %d enter the board", pilihantoken);
+            //check if there is opponents with modul isThere opponents
+            //if there is opponents then the player have to suit
+            //the player that win can move forward and the player that lose have to back to home
+            
+            //end the turn
+        }
+    }
+    else
+    {
+        //the possible move passed to bot that take the turn
+    }
+    
+}
+
+char possibleMove(int diceNum, int x, bool safe)
+{
+    //There's only three possibilities for token, m for move, o for out from base, s for stuck
+        if ((diceNum==6 && x == 0) && !safe) {
+            return 'o'; //if the token is in the home and can move to board
+        }
+        else if ((diceNum != 6 && x==0) && !safe) {
+            return 's'; //if the token is in the home and can't move to board
+        }
+        else if ((x != 0) && !safe){
+            return 'm'; //if the token is in the board
+        }
+        else if ((diceNum > (6-x)) && safe){
+            return 's'; //if the token is in the safe zone and the dice number is bigger than required step to finish
+        }
+        else {
+            return 'm'; //if the token is in the safe zone and the dice number isn't bigger than required step to finish
+        }
+    return '0';
+}
+
+bool validateInputToken (int x)
+{
+    if (x>0 && x<5) {
+        return true;
+    }
+    else return false;
+}
+
+void moveForward(int diceNum, int whosTurn, int numOfToken)
+{
+    switch (whosTurn) {
+        case 1:
+            red[numOfToken].pos += diceNum;
+            if (red[numOfToken].pos > 52) {
+                red[numOfToken].pos -= 52;
+            }
+            break;
+        case 2:
+            green[numOfToken].pos += diceNum;
+            if (green[numOfToken].pos > 52) {
+                green[numOfToken].pos -= 52;
+            }
+            break;
+        case 3:
+            yellow[numOfToken].pos += diceNum;
+            if (yellow[numOfToken].pos > 52) {
+                yellow[numOfToken].pos -= 52;
+            }
+            break;
+        case 4:
+            blue[numOfToken].pos += diceNum;
+            if (blue[numOfToken].pos > 52) {
+                blue[numOfToken].pos -= 52;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void toHomeBase(int numOfToken, int whosTurn)
+{
+    switch (whosTurn) {
+        case 1:
+            red[numOfToken].pos = 0;
+            break;
+        case 2:
+            green[numOfToken].pos = 0;
+            break;
+        case 3:
+            yellow[numOfToken].pos = 0;
+            break;
+        case 4:
+            blue[numOfToken].pos = 0;
+            break;
+        default:
+            break;
+    }
+}
+
+void outFromHomeBase(int numOfToken, int whosTurn)
+{
+    switch (whosTurn) {
+        case 1:
+            red[numOfToken].pos = 1;
+            break;
+        case 2:
+            green[numOfToken].pos = 14;
+            break;
+        case 3:
+            yellow[numOfToken].pos = 28;
+            break;
+        case 4:
+            blue[numOfToken].pos = 41;
+            break;
+        default:
+            break;
+    }
+}
+
