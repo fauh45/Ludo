@@ -235,7 +235,7 @@ Tokens isThereOpponents(Tokens token, int index);
     Final State : Token in the desired position, back to home base if failed the suit, or can't move
     Author : Marissa Nur Amalia
 */
-void move();
+void moveToken();
 
 /*
     Initial State : [token ingin dicek posibilitas geraknya (?)]
@@ -1193,10 +1193,10 @@ int RollADice()
 
 int whosTurn(int count, int numOfPlayers)
 {
-    return (count%numOfPlayers)+1;
+    return (count % numOfPlayers)+1;
 }
 
-void move(int diceNum, int whosTurn)
+void moveToken(int diceNum, int whosTurn)
 {
     int dadu, pos[4];
     char posmov[4];
@@ -1208,7 +1208,6 @@ void move(int diceNum, int whosTurn)
                 temp[i].pos = red[i].pos; //bisa diganti tokens[i].pos
                 temp[i].safe = red[i].safe;
             }
-            temp[0].
             break;
         case 2:
             for (int i=0; i<4; i++) {
@@ -1239,7 +1238,7 @@ void move(int diceNum, int whosTurn)
     for (int i=0; i<4; i++) {
         posmov[i] = possibleMove(dadu, temp[i].pos, temp[i].safe);
             if (posmov[i] == 's') {
-                j++
+                j++;
                 continue;
             }
             else printf("%d ", i+1);
@@ -1256,7 +1255,7 @@ void move(int diceNum, int whosTurn)
         int pilihantoken;
             printf("Choose the token : ");
             scanf("%d", &pilihantoken);
-            while (!validateInput(pilihantoken) || ((posmov[pilihantoken-1] == 's'))) {
+            while (!validateInputToken(pilihantoken) || ((posmov[pilihantoken-1] == 's'))) {
                     printf("The input isn't valid, please reenter the tokens!!\n");
                     printf("Choose the token : ");
                     scanf("%d", &pilihantoken);
