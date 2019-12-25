@@ -62,6 +62,14 @@ typedef struct
 WINDOW *board[15][15]; // Ludo board (graphically)
 WINDOW *options; // The box mmenu below of the board for the player to choose many things
 
+/*
+    Player array consist of all of the player
+    The array is sorted according to colour
+    red -> index 0
+    green -> index 1
+    yellow -> index 2
+    blue -> index 3
+*/
 Player players[4]; // List of players
 
 /*
@@ -193,11 +201,10 @@ bool isFileExist(char fileName[]);
     @botIndexes integer contains bot index from 0 to 2
                 0 for Jörgen, 1 for Hans, and 2 for Müller
     @colour integer containing the colour index data, 0 -> red, 1 -> green, 2 -> yellow, 3 -> blue.
-    @index index for player data array, from 1-3, as human player always in the first index
     Final State : Bot player data are initialized
     Author : Muhammad Fauzan L.
 */
-void initBotPlayerData(int botIndexes, int colour, int index);
+void initBotPlayerData(int botIndexes, int colour);
 
 /*
     Initial State : Human player data are empty (value unknown)
@@ -974,7 +981,7 @@ void showNewGameMenu(int choice[3])
 void initHumanPlayerData(int colour)
 {
     int i;
-    char col;
+    char col; // Colour of the the player
     
     switch (colour)
     {
@@ -998,9 +1005,9 @@ void initHumanPlayerData(int colour)
         break;
     }
 
-    players[0].col = col;
-    players[0].comp = false;
-    players[0].move = 0;
+    players[colour].col = col;
+    players[colour].comp = false;
+    players[colour].move = 0;
 
     for (i = 0; i < 4; i++)
     {
@@ -1049,7 +1056,7 @@ void initHumanPlayerData(int colour)
     
 }
 
-void initBotPlayerData(int botIndexes, int colour, int index)
+void initBotPlayerData(int botIndexes, int colour)
 {
     int i;
     char col;
@@ -1095,10 +1102,10 @@ void initBotPlayerData(int botIndexes, int colour, int index)
         break;
     }
 
-    players[index].col = col;
-    players[index].comp = true;
-    players[index].comptype = botIndex;
-    players[index].move = 0;
+    players[colour].col = col;
+    players[colour].comp = true;
+    players[colour].comptype = botIndex;
+    players[colour].move = 0;
 
     for (i = 0; i < 4; i++)
     {
@@ -1174,9 +1181,9 @@ void initPlayerData(int botIndexes[3])
 
     initHumanPlayerData(randTemp[0]);
 
-    for (i = 0; i < numberOfBots; i++)
+    for (i = 0, j = 1; i < numberOfBots && j < 4; i++, j++)
     {
-        initBotPlayerData(botIndexes[i], randTemp[j], i+1);
+        initBotPlayerData(botIndexes[i], randTemp[j]);
     }
     
 }
