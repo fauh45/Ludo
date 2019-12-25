@@ -4,7 +4,7 @@
 #include <string.h>
 // #include <stdbool.h>
 
-/* OS Detection to make sure screen clearing and sleep function works */
+/* OS Detection to make sure screen clearing, sleep, and curses function works */
 #if defined(__linux__) || defined(unix)
 #include <unistd.h>
 
@@ -313,7 +313,7 @@ void moveToSafeZone(int numOfToken, int whosTurn, int diceNum);
     Output : players that takes turn
     Author : Marissa Nur Amalia
 */
-int whosTurn(int count, int numOfPlayers);
+int whosTurn(int count);
 
 /*
     Input : 
@@ -377,6 +377,13 @@ int suitCheck(int player1, int player2);
 void suitMenu(int *choice);
 
 /*
+    Input : None
+    Output : Random number from 1 to 3, symbolizing the suit
+    Author : Muhammad Fauzan L.
+*/
+int suitRandom();
+
+/*
     Initial State : The inputted string are not shown in option box
     Final State : The inputted string shown in option box
     Input :
@@ -398,6 +405,21 @@ void printToOptionBox(char input[], int x, int y);
     Author : Muhammad Fauzan L.
 */
 void positionToCoordinate(Tokens token, int *x, int *y);
+
+/*
+    Initial State : Tokens are not shown on the board
+    Final State : Tokens are shown on the board
+    Author : Muhammad Fauzan L.
+*/
+void printTokens();
+
+/*
+    Input :
+    @index index of the tokens
+    Output : A, B, C, or D depending the index of the tokens
+    Author : Muhammad Fauzan L.
+*/
+char tokenShown(int index);
 
 int main()
 {
@@ -764,12 +786,17 @@ void showLogo()
         erase();
 
         printw("Logo file not found / permission problems");
+        getch();
+
+        // Return back the console properties
+        echo();
+        curs_set(1);
         exit(3);
     }
 
     // New widow to put the logo
     // Horizontally center
-    logo = newWindow(10, 41, getMiddleX(stdscr, 41), 1);
+    logo = newWindow(10, 41, getMiddleX(stdscr, 35), 1);
 
     // Show the logo
     for (i = 0; i < 9; i++)
@@ -1183,6 +1210,13 @@ void initPlayerData(int botIndexes[3])
     i = 0;
     srand(time(NULL));
 
+    // Make sure non-player are known, intializing null players
+    for (i = 0; i < 4; i++)
+    {
+        players[i].col = 'n';
+    }
+
+    // Get all uniqe random number
     while (i < 4)
     {
         temp = rand() % 4;
@@ -1293,9 +1327,9 @@ int RollADice()
     return rand() % 6 + 1;
 }
 
-int whosTurn(int count, int numOfPlayers)
+int whosTurn(int count)
 {
-    return (count % numOfPlayers) + 1;
+    return (count % numberOfBots + 1) + 1;
 }
 
 void moveToken(int diceNum, int whosTurn)
@@ -1642,7 +1676,7 @@ void suitMenu(int *choice)
     int i, highlight = 0, position;
 
     // Options for the user
-    char options[3][10] = {"Kertas", "Gunting", "Batu"};
+    char option[3][10] = {"Kertas", "Gunting", "Batu"};
     char item[9];
     char ch;
 
@@ -1669,7 +1703,7 @@ void suitMenu(int *choice)
             if (i == highlight)
                 wattron(options, A_REVERSE);
 
-            mvwprintw(options, i + 1, position + 1, options[i]);
+            mvwprintw(options, i + 1, position + 1, option[i]);
 
             if (i == highlight)
                 wattroff(options, A_REVERSE);
@@ -1694,6 +1728,13 @@ void suitMenu(int *choice)
             break;
         }
     }
+}
+
+int suitRandom()
+{
+    srand(time(NULL));
+
+    return rand() % 3 + 1;
 }
 
 void printToOptionBox(char input[], int x, int y)
@@ -1943,5 +1984,240 @@ void positionToCoordinate(Tokens token, int *x, int *y)
             *y = 14;
             break;
         }
+    }
+}
+
+void printTokens()
+{
+    int tempHome[4];    // Counting how many tokens are in one homebase
+                        // The content are sorted by colour with the 
+                        // order of red, green, yellow, and blue
+    int i, j; // Looping
+    int x, y; // Temporary storage for the coordinate in the board
+    char tempShown; // Temporary place for the the shown string
+
+    // Initialize the array
+    for ( i = 0; i < 53; i++)
+    {
+        if (i < 4)
+        {
+            tempHome[i] = 0;
+        }
+    }
+    
+    // Red tokens
+    for ( i = 0; i < 4; i++)
+    {
+        // Tokens that are still in homebase
+        if (red[i].pos == 0)
+        {
+            switch (tempHome[0])
+            {
+            case 0:
+                mvwprintw(board[2][11], 0, 0, tokenShown(i));
+                wrefresh(board[2][11]);
+                break;
+            
+            case 1:
+                mvwprintw(board[2][12], 0, 0, tokenShown(i));
+                wrefresh(board[2][12]);
+                break;
+
+            case 2:
+                mvwprintw(board[3][11], 0, 0, tokenShown(i));
+                wrefresh(board[3][11]);
+                break;
+
+            case 3:
+                mvwprintw(board[3][12], 0, 0, tokenShown(i));
+                wrefresh(board[3][12]);
+                break;
+
+            default:
+                break;
+            }
+
+            tempHome[0]++;
+        }
+        else
+        {
+            // Get coordinates
+            positionToCoordinate(red[i], &x, &y);
+            // Show the token
+            wprintw(board[x][y], tokenShown(i));
+            // Show the colour of the token
+            wbkgd(board[x][y], COLOR_PAIR(BOARD_RED));
+            // Refersh the board
+            wrefresh(board[x][y]);
+        }
+        
+    }
+    
+    // Green tokens
+    for ( i = 0; i < 4; i++)
+    {
+        // Tokens that are still in homebase
+        if (green[i].pos == 0)
+        {
+            switch (tempHome[1])
+            {
+            case 0:
+                mvwprintw(board[11][11], 0, 0, tokenShown(i));
+                wrefresh(board[11][11]);
+                break;
+            
+            case 1:
+                mvwprintw(board[11][12], 0, 0, tokenShown(i));
+                wrefresh(board[11][12]);
+                break;
+
+            case 2:
+                mvwprintw(board[12][11], 0, 0, tokenShown(i));
+                wrefresh(board[12][11]);
+                break;
+
+            case 3:
+                mvwprintw(board[12][12], 0, 0, tokenShown(i));
+                wrefresh(board[12][12]);
+                break;
+
+            default:
+                break;
+            }
+
+            tempHome[1]++;
+        }
+        else
+        {
+            // Get coordinates
+            positionToCoordinate(green[i], &x, &y);
+            // Show the token
+            wprintw(board[x][y], tokenShown(i));
+            // Show the colour of the token
+            wbkgd(board[x][y], COLOR_PAIR(BOARD_GREEN));
+            // Refersh the board
+            wrefresh(board[x][y]);
+        }
+        
+    }
+
+    // Yellow tokens
+    for ( i = 0; i < 4; i++)
+    {
+        // Tokens that are still in homebase
+        if (yellow[i].pos == 0)
+        {
+            switch (tempHome[2])
+            {
+            case 0:
+                mvwprintw(board[11][2], 0, 0, tokenShown(i));
+                wrefresh(board[11][2]);
+                break;
+            
+            case 1:
+                mvwprintw(board[11][3], 0, 0, tokenShown(i));
+                wrefresh(board[11][3]);
+                break;
+
+            case 2:
+                mvwprintw(board[12][2], 0, 0, tokenShown(i));
+                wrefresh(board[12][2]);
+                break;
+
+            case 3:
+                mvwprintw(board[12][3], 0, 0, tokenShown(i));
+                wrefresh(board[12][3]);
+                break;
+
+            default:
+                break;
+            }
+
+            tempHome[2]++;
+        }
+        else
+        {
+            // Get coordinates
+            positionToCoordinate(yellow[i], &x, &y);
+            // Show the token
+            wprintw(board[x][y], tokenShown(i));
+            // Show the colour of the token
+            wbkgd(board[x][y], COLOR_PAIR(BOARD_YELLOW));
+            // Refersh the board
+            wrefresh(board[x][y]);
+        }
+    }
+
+    // Blue tokens
+    for ( i = 0; i < 4; i++)
+    {
+        // Tokens that are still in homebase
+        if (blue[i].pos == 0)
+        {
+            switch (tempHome[3])
+            {
+            case 0:
+                mvwprintw(board[2][2], 0, 0, tokenShown(i));
+                wrefresh(board[2][2]);
+                break;
+            
+            case 1:
+                mvwprintw(board[2][3], 0, 0, tokenShown(i));
+                wrefresh(board[2][3]);
+                break;
+
+            case 2:
+                mvwprintw(board[3][2], 0, 0, tokenShown(i));
+                wrefresh(board[3][2]);
+                break;
+
+            case 3:
+                mvwprintw(board[3][3], 0, 0, tokenShown(i));
+                wrefresh(board[3][3]);
+                break;
+
+            default:
+                break;
+            }
+
+            tempHome[3]++;
+        }
+        else
+        {
+            // Get coordinates
+            positionToCoordinate(blue[i], &x, &y);
+            // Show the token
+            wprintw(board[x][y], tokenShown(i));
+            // Show the colour of the token
+            wbkgd(board[x][y], COLOR_PAIR(BOARD_BLUE));
+            // Refersh the board
+            wrefresh(board[x][y]);
+        }
+    }
+}
+
+char tokenShown(int index)
+{
+    switch (index)
+    {
+    case 0:
+        return 'A';
+        break;
+    
+    case 1:
+        return 'B';
+        break;
+
+    case 2:
+        return 'C';
+        break;
+
+    case 3:
+        return 'D';
+        break;
+
+    default:
+        return 'n';
+        break;
     }
 }
