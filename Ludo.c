@@ -6,61 +6,61 @@
 
 /* OS Detection to make sure screen clearing and sleep function works */
 #if defined(__linux__) || defined(unix)
-    #include <unistd.h>
+#include <unistd.h>
 
-    // Ncurses for Linux user
-    #include <ncurses.h>
-    char* os = "linux";
+// Ncurses for Linux user
+#include <ncurses.h>
+char *os = "linux";
 #else
 #ifdef _WIN32
-    #include <windows.h>
+#include <windows.h>
 
-    // PDCurses (port of ncurses) for windows user
-    #include "PDCurses/curses.h"
-    char* os = "windows";
+// PDCurses (port of ncurses) for windows user
+#include "PDCurses/curses.h"
+char *os = "windows";
 #else
 #ifdef __APPLE__
-    #include <unistd.h>
+#include <unistd.h>
 
-    // Ncurses for the macs as well
-    #include <ncurses.h>
-    char* os = "macos";
+// Ncurses for the macs as well
+#include <ncurses.h>
+char *os = "macos";
 #else
-    #include <unistd.h>
-    #include <ncurses.h>
-    char* os = "unknown";
+#include <unistd.h>
+#include <ncurses.h>
+char *os = "unknown";
 #endif
 #endif
 #endif
 
 // Colour for boards, defined for easier reading
-#define BOARD_BLUE 1    // White foreground, Blue background
-#define BOARD_RED 2     // White foreground, Red background
-#define BOARD_GREEN 3   // White foreground, Green background
-#define BOARD_YELLOW 4  // White foreground, Yellow background
-#define BOARD_WHITE 5   // Black foreground, White background
-#define BOARD_BLACK 6   // White foreground, Black background
+#define BOARD_BLUE 1   // White foreground, Blue background
+#define BOARD_RED 2    // White foreground, Red background
+#define BOARD_GREEN 3  // White foreground, Green background
+#define BOARD_YELLOW 4 // White foreground, Yellow background
+#define BOARD_WHITE 5  // Black foreground, White background
+#define BOARD_BLACK 6  // White foreground, Black background
 
 /* Variable Declaration */
 typedef struct
 {
-    char col; //Color of the tokens, corresponding to the player colour
-    int ind; //Index of the tokens (1 - 4) for each player
-    int pos; //Position of the tokens (global position)
+    char col;   //Color of the tokens, corresponding to the player colour
+    int ind;    //Index of the tokens (1 - 4) for each player
+    int pos;    //Position of the tokens (global position)
     int relpos; //Realtive Position from the start position
-    bool safe; //Is the token in safezone
+    bool safe;  //Is the token in safezone
 } Tokens;
 
 typedef struct
 {
-    char col; //Color of the player
-    bool comp; //Is the player a computer or not
+    char col;      //Color of the player
+    bool comp;     //Is the player a computer or not
     char comptype; // Type of computers
-    int move; //How much the player has move
+    int move;      //How much the player has move
 } Player;
 
 WINDOW *board[15][15]; // Ludo board (graphically)
-WINDOW *options; // The box mmenu below of the board for the player to choose many things
+WINDOW *options;       // The box mmenu below of the board for the player to choose many things
 
 /*
     Player array consist of all of the player
@@ -370,7 +370,7 @@ int suitCheck(int player1, int player2);
 /*
     Initial State : Suit menu is not shown
     Final State : User has inputted a choice
-    Input : 
+    Output : 
     @input 1 to 4 of suit choice as described in suitcheck
     Author : Muhammad Fauzan L.
 */
@@ -387,11 +387,23 @@ void suitMenu(int *choice);
 */
 void printToOptionBox(char input[], int x, int y);
 
+/*
+    Initial State : Position of token in board is known
+    Final State : The coresponding coordinate in board is outputed
+    Input :
+    @token the token that position that's going to be searched
+    Output :
+    @x position in rows
+    @y position in collumns
+    Author : Muhammad Fauzan L.
+*/
+void positionToCoordinate(Tokens token, int *x, int *y);
+
 int main()
 {
     // Curses mode intialization
     initscr();
-    
+
     // Check for console capabilities
     if (!has_colors())
     {
@@ -409,7 +421,7 @@ int main()
     init_pair(BOARD_YELLOW, COLOR_WHITE, COLOR_YELLOW);
     init_pair(BOARD_WHITE, COLOR_BLACK, COLOR_WHITE);
     init_pair(BOARD_BLACK, COLOR_WHITE, COLOR_BLACK);
-        
+
     switch (getUserChoiceinMenu())
     {
     case 0:
@@ -418,7 +430,7 @@ int main()
             While not gameover, showboard and option box, check who's turn, play
         */
         break;
-    
+
     case 1:
         /*
             Play resumed game here
@@ -458,11 +470,10 @@ WINDOW *newWindow(int line, int collumns, int starty, int startx)
     return win;
 }
 
-
 void showBoard()
 {
-    int i;  // Rows of Board
-    int j;  // Collumn of Board
+    int i;            // Rows of Board
+    int j;            // Collumn of Board
     int x = 1, y = 1; // Initial position of board, top left of board
 
     // Create new window for each 14 * 14 board
@@ -625,7 +636,7 @@ void showBoard()
 
     wbkgd(board[7][14], COLOR_PAIR(BOARD_WHITE));
     wrefresh(board[7][14]);
-    
+
     // Blue Safezone
     /* 
         For some unknown reason using loop doesnt work on this particular horizontal line    
@@ -642,19 +653,19 @@ void showBoard()
 
     wbkgd(board[7][2], COLOR_PAIR(BOARD_BLUE));
     wrefresh(board[7][2]);
-    
+
     wbkgd(board[7][3], COLOR_PAIR(BOARD_BLUE));
     wrefresh(board[7][3]);
-    
+
     wbkgd(board[7][4], COLOR_PAIR(BOARD_BLUE));
     wrefresh(board[7][4]);
-    
+
     wbkgd(board[7][5], COLOR_PAIR(BOARD_BLUE));
     wrefresh(board[7][5]);
-    
+
     wbkgd(board[7][6], COLOR_PAIR(BOARD_BLUE));
     wrefresh(board[7][6]);
-    
+
     // Red Safezone
     for (i = 1; i <= 6; i++)
     {
@@ -663,7 +674,7 @@ void showBoard()
     }
 
     // Green Safezone
-     /* 
+    /* 
         For some unknown reason using loop doesnt work on this particular horizontal line    
     */
     // for (j = 8; j <= 13; j++)
@@ -677,16 +688,16 @@ void showBoard()
 
     wbkgd(board[7][9], COLOR_PAIR(BOARD_GREEN));
     wrefresh(board[7][9]);
-    
+
     wbkgd(board[7][10], COLOR_PAIR(BOARD_GREEN));
     wrefresh(board[7][10]);
-    
+
     wbkgd(board[7][11], COLOR_PAIR(BOARD_GREEN));
     wrefresh(board[7][11]);
-    
+
     wbkgd(board[7][12], COLOR_PAIR(BOARD_GREEN));
     wrefresh(board[7][12]);
-    
+
     wbkgd(board[7][13], COLOR_PAIR(BOARD_GREEN));
     wrefresh(board[7][13]);
 
@@ -700,8 +711,8 @@ void showBoard()
 
 void destroyBoard()
 {
-    int i;  // Rows of Board
-    int j;  // Collumns of Board
+    int i; // Rows of Board
+    int j; // Collumns of Board
 
     for (i = 0; i <= 14; i++)
     {
@@ -719,7 +730,6 @@ void destroyBoard()
             // Delete as it's not used anymore
             delwin(board[i][j]);
         }
-        
     }
 }
 
@@ -774,7 +784,7 @@ void showLogo()
             mvwprintw(logo, i, 0, "EOF!");
         }
     }
-    
+
     // Close the file and refresh the screen
     fclose(logo_file);
     wrefresh(logo);
@@ -787,7 +797,7 @@ void showMainMenu(int *choice)
 {
     WINDOW *mainmenu;
     int i, highlight = 0, position;
-    
+
     // Options for the user
     char options[4][10] = {"New Game", "Resume", "Highscore", "Exit"};
     char item[9];
@@ -808,7 +818,7 @@ void showMainMenu(int *choice)
 
     // Hide the cursor
     curs_set(0);
-    
+
     // Loop until has been inputed
     while (1)
     {
@@ -818,27 +828,29 @@ void showMainMenu(int *choice)
             position = getMiddleX(mainmenu, strlen(options[i]));
 
             // Show the highlighted options with highlights
-            if (i == highlight) wattron(mainmenu, A_REVERSE);
+            if (i == highlight)
+                wattron(mainmenu, A_REVERSE);
 
-            mvwprintw(mainmenu, i+1, position, options[i]);
+            mvwprintw(mainmenu, i + 1, position, options[i]);
 
-            if (i == highlight) wattroff(mainmenu, A_REVERSE);
+            if (i == highlight)
+                wattroff(mainmenu, A_REVERSE);
         }
 
         // Get user input
         ch = wgetch(mainmenu);
-        
-        if (ch == (char) KEY_UP)
+
+        if (ch == (char)KEY_UP)
         {
             highlight--;
             highlight = (highlight < 0) ? 3 : highlight;
         }
-        else if (ch == (char) KEY_DOWN)
+        else if (ch == (char)KEY_DOWN)
         {
             highlight++;
             highlight = (highlight > 3) ? 0 : highlight;
         }
-        else if (ch == 10)  // Somehow the usage of KEY_ENTER doesn't work, so char 10 is used instead
+        else if (ch == 10) // Somehow the usage of KEY_ENTER doesn't work, so char 10 is used instead
         {
             *choice = highlight;
             break;
@@ -847,7 +859,7 @@ void showMainMenu(int *choice)
 
     // After user input clear out the border and window as
     // it is not used anymore
-    wborder(mainmenu, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '); 
+    wborder(mainmenu, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
     delwin(mainmenu);
 }
 
@@ -909,13 +921,13 @@ void showNewGameMenu(int choice[3])
 
         // Get the user input
         wscanw(botchoice, "%d", &numberOfBots);
-        
+
         // Check for validity of input
         if (numberOfBots > 0 && numberOfBots < 4)
         {
             break;
         }
-        
+
         wrefresh(botchoice);
     }
 
@@ -993,13 +1005,13 @@ void initHumanPlayerData(int colour)
 {
     int i;
     char col; // Colour of the the player
-    
+
     switch (colour)
     {
     case 0:
         col = 'r';
         break;
-    
+
     case 1:
         col = 'g';
         break;
@@ -1032,14 +1044,14 @@ void initHumanPlayerData(int colour)
             red[i].safe = false;
 
             break;
-        
+
         case 'g':
             green[i].col = 'g';
             green[i].ind = i;
             green[i].pos = 0;
             green[i].relpos = 0;
             green[i].safe = false;
-            
+
             break;
 
         case 'y':
@@ -1048,7 +1060,7 @@ void initHumanPlayerData(int colour)
             yellow[i].pos = 0;
             yellow[i].relpos = 0;
             yellow[i].safe = false;
-            
+
             break;
 
         case 'b':
@@ -1057,14 +1069,13 @@ void initHumanPlayerData(int colour)
             blue[i].pos = 0;
             blue[i].relpos = 0;
             blue[i].safe = false;
-            
+
             break;
 
         default:
             break;
         }
     }
-    
 }
 
 void initBotPlayerData(int botIndexes, int colour)
@@ -1078,7 +1089,7 @@ void initBotPlayerData(int botIndexes, int colour)
     case 0:
         col = 'r';
         break;
-    
+
     case 1:
         col = 'g';
         break;
@@ -1108,7 +1119,7 @@ void initBotPlayerData(int botIndexes, int colour)
     case 2:
         botIndex = 'm';
         break;
-    
+
     default:
         break;
     }
@@ -1130,14 +1141,14 @@ void initBotPlayerData(int botIndexes, int colour)
             red[i].safe = false;
 
             break;
-        
+
         case 'g':
             green[i].col = 'g';
             green[i].ind = i;
             green[i].pos = 0;
             green[i].relpos = 0;
             green[i].safe = false;
-            
+
             break;
 
         case 'y':
@@ -1146,7 +1157,7 @@ void initBotPlayerData(int botIndexes, int colour)
             yellow[i].pos = 0;
             yellow[i].relpos = 0;
             yellow[i].safe = false;
-            
+
             break;
 
         case 'b':
@@ -1154,9 +1165,9 @@ void initBotPlayerData(int botIndexes, int colour)
             blue[i].ind = i;
             blue[i].pos = 0;
             blue[i].safe = false;
-            
+
             break;
-            
+
         default:
             break;
         }
@@ -1166,7 +1177,7 @@ void initBotPlayerData(int botIndexes, int colour)
 void initPlayerData(int botIndexes[3])
 {
     int randTemp[4]; // Used for temporary storage of randomized number
-    int i, j; // Looping variable
+    int i, j;        // Looping variable
     int temp;
 
     i = 0;
@@ -1196,13 +1207,12 @@ void initPlayerData(int botIndexes[3])
     {
         initBotPlayerData(botIndexes[i], randTemp[j]);
     }
-    
 }
 
 Tokens isThereOpponents(Tokens token, int index)
 {
     int i;
-    
+
     // Loops every array of token colour
     for (i = 0; i < 4; i++)
     {
@@ -1224,7 +1234,6 @@ Tokens isThereOpponents(Tokens token, int index)
         {
             return yellow[i];
         }
-        
     }
 
     // If none were found return with colour n (null)
@@ -1237,8 +1246,6 @@ bool isTransitionToSafezone(Tokens token, int diceroll)
     return (token.relpos + diceroll) > 52;
 }
 
-
-
 //int distanceBetween(Tokens token1, Tokens token2)
 //{
 //    int distance = 0; // Distance between token1 and 2
@@ -1250,33 +1257,33 @@ bool isTransitionToSafezone(Tokens token, int diceroll)
 
 void ClearScreen()
 {
-    #ifdef _WIN32
-        System("cls");
-    #else
-        system("clear");
-    #endif
+#ifdef _WIN32
+    System("cls");
+#else
+    system("clear");
+#endif
 }
 
 void WaitForSecond(int time)
 {
-    // Check for platform as sleep function are different
-    // in different OS
-    #ifdef _WIN32
-        // Windows uses ms instead seconds
-        Sleep(time * 1000);
-    #else
-        sleep(time);
-    #endif
+// Check for platform as sleep function are different
+// in different OS
+#ifdef _WIN32
+    // Windows uses ms instead seconds
+    Sleep(time * 1000);
+#else
+    sleep(time);
+#endif
 }
 
 bool isFileExist(char fileName[])
 {
-    // Different syntax of access on widows
-    #ifdef _WIN32
-        return (_access(fileName, F_OK) != -1);
-    #else
-        return (access(fileName, F_OK) != -1);
-    #endif
+// Different syntax of access on widows
+#ifdef _WIN32
+    return (_access(fileName, F_OK) != -1);
+#else
+    return (access(fileName, F_OK) != -1);
+#endif
 }
 
 int RollADice()
@@ -1288,7 +1295,7 @@ int RollADice()
 
 int whosTurn(int count, int numOfPlayers)
 {
-    return (count % numOfPlayers)+1;
+    return (count % numOfPlayers) + 1;
 }
 
 void moveToken(int diceNum, int whosTurn)
@@ -1296,72 +1303,85 @@ void moveToken(int diceNum, int whosTurn)
     int dadu, pos[4];
     char posmov[4];
     Tokens temp[4], opponents;
-    
-    switch (whosTurn) {
-        case 1:
-            for (int i=0; i<4; i++) {
-                temp[i] = red[i];
-            }
-            break;
-        case 2:
-            for (int i=0; i<4; i++) {
-                temp[i] = green[i];
-            }
-            break;
-        case 3:
-            for (int i=0; i<4; i++) {
-                temp[i] = yellow[i];
-            }
-            break;
-        case 4:
-            for (int i=0; i<4; i++) {
-                temp[i] = blue[i];
-            }
-            break;
-            
-        default:
-            break;
+
+    switch (whosTurn)
+    {
+    case 1:
+        for (int i = 0; i < 4; i++)
+        {
+            temp[i] = red[i];
+        }
+        break;
+    case 2:
+        for (int i = 0; i < 4; i++)
+        {
+            temp[i] = green[i];
+        }
+        break;
+    case 3:
+        for (int i = 0; i < 4; i++)
+        {
+            temp[i] = yellow[i];
+        }
+        break;
+    case 4:
+        for (int i = 0; i < 4; i++)
+        {
+            temp[i] = blue[i];
+        }
+        break;
+
+    default:
+        break;
     }
 
     printf("Tokens that can be move : ");
-    int j=0;
-    for (int i=0; i<4; i++) {
+    int j = 0;
+    for (int i = 0; i < 4; i++)
+    {
         posmov[i] = possibleMove(dadu, temp[i].pos, temp[i].safe);
-            if (posmov[i] == 's') {
-                j++;
-                continue;
-            }
-            else printf("%d ", i+1);
-        if (j == 4) {
+        if (posmov[i] == 's')
+        {
+            j++;
+            continue;
+        }
+        else
+            printf("%d ", i + 1);
+        if (j == 4)
+        {
             printf("There's no tokens that can be move");
             //end the turn
         }
     }
     printf("\n");
-    
+
     //check if the player comp or not
     if (!players[whosTurn].comp)
     {
         int numOfToken;
+        printf("Choose the token : ");
+        scanf("%d", &numOfToken);
+        while (!validateInputToken(numOfToken) || ((posmov[numOfToken - 1] == 's')))
+        {
+            printf("The input isn't valid, please reenter the tokens!!\n");
             printf("Choose the token : ");
             scanf("%d", &numOfToken);
-            while (!validateInputToken(numOfToken) || ((posmov[numOfToken-1] == 's'))) {
-                    printf("The input isn't valid, please reenter the tokens!!\n");
-                    printf("Choose the token : ");
-                    scanf("%d", &numOfToken);
-                }
+        }
         numOfToken -= 1;
-        opponents = isThereOpponents(temp[numOfToken], temp[numOfToken].pos+diceNum);
-        if (posmov[numOfToken] == 'm') {
+        opponents = isThereOpponents(temp[numOfToken], temp[numOfToken].pos + diceNum);
+        if (posmov[numOfToken] == 'm')
+        {
             //check if the token can move to safe zone or not
-            if (isTransitionToSafezone(temp[numOfToken], diceNum)) {
+            if (isTransitionToSafezone(temp[numOfToken], diceNum))
+            {
                 moveToSafeZone(numOfToken, whosTurn, diceNum);
                 printf("Token %d move %d step to safe zone \n", numOfToken, dadu);
             }
             else
             {
                 //check if there is opponents with modul isThere opponents
-                if ((opponents.col != temp[numOfToken].col) && (opponents.col != 'n')) {
+                if ((opponents.col != temp[numOfToken].col) && (opponents.col != 'n'))
+                {
                     //suitMenu()
                     //suitCheck()
                     //if win then token moveForward opponents moveToHome and vice versa
@@ -1369,14 +1389,17 @@ void moveToken(int diceNum, int whosTurn)
                 else
                 {
                     moveForward(diceNum, whosTurn, numOfToken);
-                    printf("Token %d move %d step to board no-%d\n", numOfToken, dadu, temp[numOfToken].pos+dadu);
+                    printf("Token %d move %d step to board no-%d\n", numOfToken, dadu, temp[numOfToken].pos + dadu);
                 }
             }
-        } else if (posmov[numOfToken] == 'o'){
+        }
+        else if (posmov[numOfToken] == 'o')
+        {
             printf("Token %d enter the board", numOfToken);
-            
+
             //check if there is opponents with modul isThere opponents
-            if ((opponents.col != temp[numOfToken].col) && (opponents.col != 'n')) {
+            if ((opponents.col != temp[numOfToken].col) && (opponents.col != 'n'))
+            {
                 //suitMenu()
                 //suitCheck()
                 //if win then token don't have to back to home
@@ -1388,147 +1411,161 @@ void moveToken(int diceNum, int whosTurn)
     {
         //the possible move passed to bot that take the turn
     }
-    
 }
 
 char possibleMove(int diceNum, int x, bool safe)
 {
     //There's only three possibilities for token, m for move, o for out from base, s for stuck
-        if ((diceNum==6 && x == 0) && !safe) {
-            return 'o'; //if the token is in the home and can move to board
-        }
-        else if ((diceNum != 6 && x==0) && !safe) {
-            return 's'; //if the token is in the home and can't move to board
-        }
-        else if ((x != 0) && !safe){
-            return 'm'; //if the token is in the board
-        }
-        else if ((diceNum > (6-x)) && safe){
-            return 's'; //if the token is in the safe zone and the dice number is bigger than required step to finish
-        }
-        else {
-            return 'm'; //if the token is in the safe zone and the dice number isn't bigger than required step to finish
-        }
+    if ((diceNum == 6 && x == 0) && !safe)
+    {
+        return 'o'; //if the token is in the home and can move to board
+    }
+    else if ((diceNum != 6 && x == 0) && !safe)
+    {
+        return 's'; //if the token is in the home and can't move to board
+    }
+    else if ((x != 0) && !safe)
+    {
+        return 'm'; //if the token is in the board
+    }
+    else if ((diceNum > (6 - x)) && safe)
+    {
+        return 's'; //if the token is in the safe zone and the dice number is bigger than required step to finish
+    }
+    else
+    {
+        return 'm'; //if the token is in the safe zone and the dice number isn't bigger than required step to finish
+    }
     return '0';
 }
 
-bool validateInputToken (int x)
+bool validateInputToken(int x)
 {
-    if (x>0 && x<5) {
+    if (x > 0 && x < 5)
+    {
         return true;
     }
-    else return false;
+    else
+        return false;
 }
 
 void moveForward(int diceNum, int whosTurn, int numOfToken)
 {
-    switch (whosTurn) {
-        case 1:
-            red[numOfToken].pos += diceNum;
-            red[numOfToken].relpos += diceNum;
-            if (red[numOfToken].pos > 52) {
-                red[numOfToken].pos -= 52;
-            }
-            break;
-        case 2:
-            green[numOfToken].pos += diceNum;
-            green[numOfToken].relpos += diceNum;
-            if (green[numOfToken].pos > 52) {
-                green[numOfToken].pos -= 52;
-            }
-            break;
-        case 3:
-            yellow[numOfToken].pos += diceNum;
-            yellow[numOfToken].relpos += diceNum;
-            if (yellow[numOfToken].pos > 52) {
-                yellow[numOfToken].pos -= 52;
-            }
-            break;
-        case 4:
-            blue[numOfToken].pos += diceNum;
-            blue[numOfToken].relpos += diceNum;
-            if (blue[numOfToken].pos > 52) {
-                blue[numOfToken].pos -= 52;
-            }
-            break;
-        default:
-            break;
+    switch (whosTurn)
+    {
+    case 1:
+        red[numOfToken].pos += diceNum;
+        red[numOfToken].relpos += diceNum;
+        if (red[numOfToken].pos > 52)
+        {
+            red[numOfToken].pos -= 52;
+        }
+        break;
+    case 2:
+        green[numOfToken].pos += diceNum;
+        green[numOfToken].relpos += diceNum;
+        if (green[numOfToken].pos > 52)
+        {
+            green[numOfToken].pos -= 52;
+        }
+        break;
+    case 3:
+        yellow[numOfToken].pos += diceNum;
+        yellow[numOfToken].relpos += diceNum;
+        if (yellow[numOfToken].pos > 52)
+        {
+            yellow[numOfToken].pos -= 52;
+        }
+        break;
+    case 4:
+        blue[numOfToken].pos += diceNum;
+        blue[numOfToken].relpos += diceNum;
+        if (blue[numOfToken].pos > 52)
+        {
+            blue[numOfToken].pos -= 52;
+        }
+        break;
+    default:
+        break;
     }
 }
 
 void toHomeBase(int numOfToken, int whosTurn)
 {
-    switch (whosTurn) {
-        case 1:
-            red[numOfToken].pos = 0;
-            red[numOfToken].relpos = 0;
-            break;
-        case 2:
-            green[numOfToken].pos = 0;
-            green[numOfToken].relpos = 0;
-            break;
-        case 3:
-            yellow[numOfToken].pos = 0;
-            yellow[numOfToken].relpos = 0;
-            break;
-        case 4:
-            blue[numOfToken].pos = 0;
-            blue[numOfToken].relpos = 0;
-            break;
-        default:
-            break;
+    switch (whosTurn)
+    {
+    case 1:
+        red[numOfToken].pos = 0;
+        red[numOfToken].relpos = 0;
+        break;
+    case 2:
+        green[numOfToken].pos = 0;
+        green[numOfToken].relpos = 0;
+        break;
+    case 3:
+        yellow[numOfToken].pos = 0;
+        yellow[numOfToken].relpos = 0;
+        break;
+    case 4:
+        blue[numOfToken].pos = 0;
+        blue[numOfToken].relpos = 0;
+        break;
+    default:
+        break;
     }
 }
 
 void outFromHomeBase(int numOfToken, int whosTurn)
 {
-    switch (whosTurn) {
-        case 1:
-            red[numOfToken].pos = 1;
-            red[numOfToken].relpos = 1;
-            break;
-        case 2:
-            green[numOfToken].pos = 14;
-            green[numOfToken].relpos = 1;
-            break;
-        case 3:
-            yellow[numOfToken].pos = 28;
-            yellow[numOfToken].relpos = 1;
-            break;
-        case 4:
-            blue[numOfToken].pos = 41;
-            blue[numOfToken].relpos = 1;
-            break;
-        default:
-            break;
+    switch (whosTurn)
+    {
+    case 1:
+        red[numOfToken].pos = 1;
+        red[numOfToken].relpos = 1;
+        break;
+    case 2:
+        green[numOfToken].pos = 14;
+        green[numOfToken].relpos = 1;
+        break;
+    case 3:
+        yellow[numOfToken].pos = 28;
+        yellow[numOfToken].relpos = 1;
+        break;
+    case 4:
+        blue[numOfToken].pos = 41;
+        blue[numOfToken].relpos = 1;
+        break;
+    default:
+        break;
     }
 }
 
 void moveToSafeZone(int numOfToken, int whosTurn, int diceNum)
 {
-    switch (whosTurn) {
-        case 1:
-            red[numOfToken].pos = (red[numOfToken].pos + diceNum) - 52;
-            red[numOfToken].relpos = red[numOfToken].pos;
-            red[numOfToken].safe = true;
-            break;
-        case 2:
-            green[numOfToken].pos = (green[numOfToken].pos + diceNum) - 12;
-            green[numOfToken].relpos = green[numOfToken].pos;
-            green[numOfToken].safe = true;
-            break;
-        case 3:
-            yellow[numOfToken].pos = (yellow[numOfToken].pos + diceNum) - 25;
-            yellow[numOfToken].relpos = yellow[numOfToken].pos;
-            yellow[numOfToken].safe = true;
-            break;
-        case 4:
-            blue[numOfToken].pos = (blue[numOfToken].pos + diceNum) - 39;
-            blue[numOfToken].relpos = blue[numOfToken].pos;
-            blue[numOfToken].safe = true;
-            break;
-        default:
-            break;
+    switch (whosTurn)
+    {
+    case 1:
+        red[numOfToken].pos = (red[numOfToken].pos + diceNum) - 52;
+        red[numOfToken].relpos = red[numOfToken].pos;
+        red[numOfToken].safe = true;
+        break;
+    case 2:
+        green[numOfToken].pos = (green[numOfToken].pos + diceNum) - 12;
+        green[numOfToken].relpos = green[numOfToken].pos;
+        green[numOfToken].safe = true;
+        break;
+    case 3:
+        yellow[numOfToken].pos = (yellow[numOfToken].pos + diceNum) - 25;
+        yellow[numOfToken].relpos = yellow[numOfToken].pos;
+        yellow[numOfToken].safe = true;
+        break;
+    case 4:
+        blue[numOfToken].pos = (blue[numOfToken].pos + diceNum) - 39;
+        blue[numOfToken].relpos = blue[numOfToken].pos;
+        blue[numOfToken].safe = true;
+        break;
+    default:
+        break;
     }
 }
 
@@ -1577,18 +1614,23 @@ int suitCheck(int player1, int player2)
         return 0;
     }
     // Kertas vs Gunting, gunting won
-    else if (player1 == 1 && player2 == 2) return 2;
+    else if (player1 == 1 && player2 == 2)
+        return 2;
     // Kertas vs Batu, batu won
-    else if (player1 == 1 && player2 == 3) return 1;
+    else if (player1 == 1 && player2 == 3)
+        return 1;
     // Gunting vs Kertas, gunting won
-    else if (player1 == 2 && player2 == 1) return 1;
+    else if (player1 == 2 && player2 == 1)
+        return 1;
     // Gunting vs Batu, batu won
-    else if (player1 == 2 && player2 == 3) return 2;
+    else if (player1 == 2 && player2 == 3)
+        return 2;
     // Batu vs Kertas, kertas won
-    else if (player1 == 3 && player2 == 1) return 1;
+    else if (player1 == 3 && player2 == 1)
+        return 1;
     // Batu vs Gunting, batu won
-    else if (player1 == 3 && player2 == 2) return 1;
-    
+    else if (player1 == 3 && player2 == 2)
+        return 1;
 }
 
 void suitMenu(int *choice)
@@ -1598,7 +1640,7 @@ void suitMenu(int *choice)
 
     // Positioning and looping
     int i, highlight = 0, position;
-    
+
     // Options for the user
     char options[3][10] = {"Kertas", "Gunting", "Batu"};
     char item[9];
@@ -1612,7 +1654,7 @@ void suitMenu(int *choice)
 
     // Hide the cursor
     curs_set(0);
-    
+
     // Show label to informed the user
     mvwprintw(options, 1, 1, "Pilih opsi untuk suit");
     position = strlen("Pilih opsi untuk suit");
@@ -1624,27 +1666,29 @@ void suitMenu(int *choice)
         for (i = 0; i < 4; i++)
         {
             // Show the highlighted options with highlights
-            if (i == highlight) wattron(options, A_REVERSE);
+            if (i == highlight)
+                wattron(options, A_REVERSE);
 
-            mvwprintw(options, i+1, position + 1, options[i]);
+            mvwprintw(options, i + 1, position + 1, options[i]);
 
-            if (i == highlight) wattroff(options, A_REVERSE);
+            if (i == highlight)
+                wattroff(options, A_REVERSE);
         }
 
         // Get user input
         ch = wgetch(options);
-        
-        if (ch == (char) KEY_UP)
+
+        if (ch == (char)KEY_UP)
         {
             highlight--;
             highlight = (highlight < 0) ? 2 : highlight;
         }
-        else if (ch == (char) KEY_DOWN)
+        else if (ch == (char)KEY_DOWN)
         {
             highlight++;
             highlight = (highlight > 2) ? 0 : highlight;
         }
-        else if (ch == 10)  // Somehow the usage of KEY_ENTER doesn't work, so char 10 is used instead
+        else if (ch == 10) // Somehow the usage of KEY_ENTER doesn't work, so char 10 is used instead
         {
             *choice = highlight + 1;
             break;
@@ -1659,6 +1703,245 @@ void printToOptionBox(char input[], int x, int y)
 
     // Refresh the box
     wrefresh(options);
-
 }
 
+void positionToCoordinate(Tokens token, int *x, int *y)
+{
+    if (token.safe)
+    {
+        switch (token.col)
+        {
+        case 'r':
+            // Red Safezone are in one collumn
+            *y = 7;
+            // The rows are the same as the position in the safezone
+            *x = token.pos;
+            break;
+
+        case 'g':
+            // Green Safezone are in one row
+            *x = 7;
+            // The safezone are in the right side of the board
+            *y = 14 - token.pos;
+            break;
+
+        case 'y':
+            // Yellow Safezone are in one collumn
+            *y = 7;
+            // The rows are int the bottom part of the board
+            *x = 14 - token.pos;
+            break;
+
+        case 'b':
+            // Blue Safezone are in one row
+            *x = 7;
+            // The collumn are the same as the position in the safezone
+            *y = token.pos;
+            break;
+        }
+    }
+    else
+    {
+        // Search for the position in the rows
+        switch (token.pos)
+        {
+        case 51:
+        case 52:
+        case 53:
+            *x = 0;
+            break;
+
+        case 50:
+        case 1:
+            *x = 1;
+            break;
+
+        case 49:
+        case 2:
+            *x = 2;
+            break;
+
+        case 48:
+        case 3:
+            *x = 3;
+            break;
+
+        case 47:
+        case 4:
+            *x = 4;
+            break;
+
+        case 46:
+        case 5:
+            *x = 5;
+            break;
+
+        case 40:
+        case 41:
+        case 42:
+        case 43:
+        case 44:
+        case 45:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+            *x = 6;
+            break;
+
+        case 39:
+        case 12:
+            *x = 7;
+            break;
+
+        case 38:
+        case 37:
+        case 36:
+        case 35:
+        case 34:
+        case 33:
+        case 18:
+        case 17:
+        case 16:
+        case 15:
+        case 14:
+        case 13:
+            *x = 8;
+            break;
+
+        case 32:
+        case 19:
+            *x = 9;
+            break;
+
+        case 31:
+        case 20:
+            *x = 10;
+            break;
+
+        case 30:
+        case 21:
+            *x = 11;
+            break;
+
+        case 29:
+        case 22:
+            *x = 12;
+            break;
+
+        case 28:
+        case 23:
+            *x = 13;
+            break;
+
+        case 27:
+        case 25:
+        case 24:
+            *x = 14;
+            break;
+        }
+
+        // Search for the collumns
+        switch (token.pos)
+        {
+        case 40:
+        case 39:
+        case 38:
+            *y = 0;
+            break;
+
+        case 41:
+        case 37:
+            *y = 1;
+            break;
+
+        case 42:
+        case 36:
+            *y = 2;
+            break;
+
+        case 43:
+        case 35:
+            *y = 3;
+            break;
+
+        case 44:
+        case 34:
+            *y = 4;
+            break;
+
+        case 45:
+        case 33:
+            *y = 5;
+            break;
+
+        case 51:
+        case 50:
+        case 49:
+        case 48:
+        case 47:
+        case 46:
+        case 32:
+        case 31:
+        case 30:
+        case 29:
+        case 28:
+        case 27:
+            *y = 6;
+            break;
+
+        case 52:
+        case 25:
+            *y = 7;
+            break;
+
+        case 53:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 19:
+        case 20:
+        case 21:
+        case 22:
+        case 23:
+        case 24:
+            *y = 8;
+            break;
+
+        case 6:
+        case 18:
+            *y = 9;
+            break;
+
+        case 7:
+        case 17:
+            *y = 10;
+            break;
+
+        case 8:
+        case 16:
+            *y = 11;
+            break;
+
+        case 9:
+        case 15:
+            *y = 12;
+            break;
+
+        case 10:
+        case 14:
+            *y = 13;
+            break;
+
+        case 11:
+        case 12:
+        case 13:
+            *y = 14;
+            break;
+        }
+    }
+}
