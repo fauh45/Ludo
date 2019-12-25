@@ -88,6 +88,10 @@ Tokens blue[4];
 
 // Number of bots
 int numberOfBots;
+// Who's take the turn
+int whosTurn;
+// Count how many turn that already done
+int count=0;
 
 /* Function Prototype */
 
@@ -236,14 +240,40 @@ void initPlayerData(int botIndexes[3]);
 Tokens isThereOpponents(Tokens token, int index);
 
 /*
+    Input :
+    @color the colour of opponents that players have to beat in suit
+    Output : index of opponents if there's opponents
+    Author : Marissa Nur Amalia
+*/
+int whosOpponents(char color);
+
+/*
+    Initial state = new turn
+    Input :
+    @index the index of token that want to be initialize
+    Output = Initialize the token of player that take the turn
+*/
+Tokens getTokens(int index);
+
+/*
     Initial State : Token in initial position
     Input :
     @diceNum the dice number that shown up
-    @whosTurn [pemain yang sedang giliran]
+    @temp to store the value of the choosen token
+    @posmov possible move of the token that want to be move
+    @numOfToken the number of token of user that want to be move
     Final State : Token in the desired position, back to home base if failed the suit, or can't move
     Author : Marissa Nur Amalia
 */
-void moveToken();
+void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken);
+
+/*
+    Initial State : The token that want to be move not yet choosen
+    Input
+    @posmov[4] array of possible move of tokens that user have
+    Output : The token that want to be move is choosen
+*/
+int getNumOfToken(char posmov[]);
 
 /*
     Initial State : [token ingin dicek posibilitas geraknya (?)]
@@ -255,6 +285,13 @@ void moveToken();
     Author : Marissa Nur Amalia
 */
 char possibleMove(int diceNum, int pos, bool safe);
+
+/*
+    Initial State : User didn't know the possible move of token
+    Output : Get and show user possibility of token to move, to out from home, or can't move
+    Author : Marissa Nur Amalia
+*/
+void getPossibleMove(char *posmov, Tokens temp[], int diceNum);
 
 /*
     Initial State : The input number of choice is want to be checked
@@ -269,51 +306,47 @@ bool validateInputToken(int choosenToken);
     Initial State : Token in initial position
     Input :
     @diceNum the dice number that shown up
-    @whosTurn [pemain yang sedang giliran]
     @numOfToken the index number of token that want to move
     Final State : the token is in desired position
     Author : Marissa Nur Amalia
 */
-void moveForward(int diceNum, int whosTurn, int numOfToken);
+void moveForward(int diceNum, int numOfToken);
 
 /*
     Initial State : Token in initial position
     Input :
     @numOfToken the index number of token that want to move
-    @whosTurn [pemain yang sedang giliran]
+    @index index of player that back to home
     Final State : Token is back to home
     Author : Marissa Nur Amalia
 */
-void toHomeBase(int numOfToken, int whosTurn);
+void toHomeBase(int numOfToken, int index);
 
 /*
     Initial State : Token is in home
     Input :
-    @diceNum the dice number that shown up
-    @whosTurn [pemain yang sedang giliran]
+    @numOfToken the index number of token that want to move
     Final State : Token is out home
     Author : Marissa Nur Amalia
 */
-void outFromHomeBase(int numOfToken, int whosTurn);
+void outFromHomeBase(int numOfToken);
 
 /*
     Initial State : Token is in home
     Input :
     @diceNum the dice number that shown up
-    @whosTurn [pemain yang sedang giliran]
-    @numOfToken
+    @numOfToken the index number of token that want to move
     Final State : Token is in safe zone
     Author : Marissa Nur Amalia
 */
-void moveToSafeZone(int numOfToken, int whosTurn, int diceNum);
+void moveToSafeZone(int numOfToken, int diceNum);
 
 /*
-    Input :
-    @count the number of the players take turn
+    Input : -
     Output : players that takes turn
     Author : Marissa Nur Amalia
 */
-int whosTurn(int count);
+int moveToNextTurn();
 
 /*
     Input : 
@@ -451,7 +484,34 @@ int main()
             Play new game here
             While not gameover, showboard and option box, check who's turn, play
         */
-        break;
+            //check who's turn
+            whosTurn = moveToNextTurn();
+            //play
+            int diceNum = RollADice();
+            
+            Tokens temp[4];
+            for (int i=0; i<4; i++) {
+                temp[i] = getTokens(i);
+            }
+            
+            //check if it is the user turn
+            if (!players[whosTurn].comp) {
+            
+                //check the possible move
+                char posmov[4];
+                getPossibleMove(*posmov,temp,diceNum);
+                
+                //get number of token that want to be move
+                int numOfToken = getNumOfToken(posmov);
+                
+                //move the token
+                moveToken(diceNum, temp[numOfToken], posmov[numOfToken], numOfToken);
+            }
+            else
+            {
+                //play the bot
+            }
+            
 
     case 1:
         /*
@@ -1327,124 +1387,140 @@ int RollADice()
     return rand() % 6 + 1;
 }
 
-int whosTurn(int count)
+Tokens getTokens(int i)
 {
+    switch (whosTurn) {
+        case 1:
+                return red[i];
+            break;
+        case 2:
+                return green[i];
+            break;
+        case 3:
+                return yellow[i];
+            break;
+        case 4:
+                return blue[i];
+            break;
+            
+        default:
+            break;
+    }
+}
+
+int moveToNextTurn()
+{
+    count++;
     return (count % numberOfBots + 1) + 1;
 }
 
-void moveToken(int diceNum, int whosTurn)
+void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
 {
-    int dadu, pos[4];
-    char posmov[4];
-    Tokens temp[4], opponents;
+    Tokens opponents;
 
-    switch (whosTurn)
+    opponents = isThereOpponents(temp, temp.pos + diceNum);
+    
+    if (posmov == 'm')
     {
-    case 1:
-        for (int i = 0; i < 4; i++)
+        //check if the token can move to safe zone or not
+        if (isTransitionToSafezone(temp, diceNum))
         {
-            temp[i] = red[i];
+            moveToSafeZone(numOfToken, diceNum);
+            printf("Token %d move %d step to safe zone \n", numOfToken, diceNum);
         }
-        break;
-    case 2:
-        for (int i = 0; i < 4; i++)
+        else
         {
-            temp[i] = green[i];
+            //check if there is opponents with modul isThere opponents
+            if ((opponents.col != temp.col) && (opponents.col != 'n'))
+            {
+                //initialize the index of opponent
+                int op = whosOpponents(opponents.col);
+                
+                //suitMenu()
+                int choice, opChoice; //choice is choosen by user and opChoice is random
+                suitMenu(choice);
+                opChoice = suitRandom();
+                
+                //suitCheck()
+                int whosWin;
+                whosWin = suitCheck(choice, opChoice);
+                
+                //if win then token moveForward opponents moveToHome and vice versa
+                if (whosWin == 1) //if user win
+                {
+                    moveForward(diceNum,numOfToken);
+                    toHomeBase(numOfToken, op+1);
+                } else
+                {
+                    toHomeBase(numOfToken, whosTurn);
+                }
+            }
+            else
+            {
+                moveForward(diceNum, numOfToken);
+                printf("Token %d move %d step to board no-%d\n", numOfToken, diceNum, temp.pos + diceNum);
+            }
         }
-        break;
-    case 3:
-        for (int i = 0; i < 4; i++)
-        {
-            temp[i] = yellow[i];
-        }
-        break;
-    case 4:
-        for (int i = 0; i < 4; i++)
-        {
-            temp[i] = blue[i];
-        }
-        break;
-
-    default:
-        break;
     }
+    else if (posmov == 'o')
+    {
+        printf("Token %d enter the board", numOfToken);
+        //check if there is opponents with modul isThere opponents
+        if ((opponents.col != temp.col) && (opponents.col != 'n'))
+        {
+            //suitMenu()
+            //suitCheck()
+            //if win then token don't have to back to home
+        }
+        //end the turn
+    }
+    
+}
 
+void getPossibleMove(char *posmov, Tokens temp[], int diceNum)
+{
     printf("Tokens that can be move : ");
-    int j = 0;
+    int j=0;
     for (int i = 0; i < 4; i++)
     {
-        posmov[i] = possibleMove(dadu, temp[i].pos, temp[i].safe);
+        posmov[i] = possibleMove(diceNum, temp[i].pos, temp[i].safe);
         if (posmov[i] == 's')
         {
             j++;
             continue;
         }
         else
+        {
             printf("%d ", i + 1);
+        }
         if (j == 4)
         {
             printf("There's no tokens that can be move");
             //end the turn
         }
     }
+    
     printf("\n");
+    
+}
 
-    //check if the player comp or not
-    if (!players[whosTurn].comp)
+int getNumOfToken(char posmov[])
+{
+    int numOfToken;
+    
+    printf("Choose the token : ");
+    scanf("%d", &numOfToken);
+    
+    while (!validateInputToken(numOfToken) || ((posmov[numOfToken - 1] == 's')))
     {
-        int numOfToken;
+        printf("The input isn't valid, please reenter the tokens!!\n");
         printf("Choose the token : ");
         scanf("%d", &numOfToken);
-        while (!validateInputToken(numOfToken) || ((posmov[numOfToken - 1] == 's')))
-        {
-            printf("The input isn't valid, please reenter the tokens!!\n");
-            printf("Choose the token : ");
-            scanf("%d", &numOfToken);
-        }
-        numOfToken -= 1;
-        opponents = isThereOpponents(temp[numOfToken], temp[numOfToken].pos + diceNum);
-        if (posmov[numOfToken] == 'm')
-        {
-            //check if the token can move to safe zone or not
-            if (isTransitionToSafezone(temp[numOfToken], diceNum))
-            {
-                moveToSafeZone(numOfToken, whosTurn, diceNum);
-                printf("Token %d move %d step to safe zone \n", numOfToken, dadu);
-            }
-            else
-            {
-                //check if there is opponents with modul isThere opponents
-                if ((opponents.col != temp[numOfToken].col) && (opponents.col != 'n'))
-                {
-                    //suitMenu()
-                    //suitCheck()
-                    //if win then token moveForward opponents moveToHome and vice versa
-                }
-                else
-                {
-                    moveForward(diceNum, whosTurn, numOfToken);
-                    printf("Token %d move %d step to board no-%d\n", numOfToken, dadu, temp[numOfToken].pos + dadu);
-                }
-            }
-        }
-        else if (posmov[numOfToken] == 'o')
-        {
-            printf("Token %d enter the board", numOfToken);
+    }
+    numOfToken -= 1;
+    
+    return numOfToken;
 
-            //check if there is opponents with modul isThere opponents
-            if ((opponents.col != temp[numOfToken].col) && (opponents.col != 'n'))
-            {
-                //suitMenu()
-                //suitCheck()
-                //if win then token don't have to back to home
-            }
-            //end the turn
-        }
-    }
-    else
-    {
-        //the possible move passed to bot that take the turn
-    }
 }
 
 char possibleMove(int diceNum, int x, bool safe)
@@ -1483,7 +1559,7 @@ bool validateInputToken(int x)
         return false;
 }
 
-void moveForward(int diceNum, int whosTurn, int numOfToken)
+void moveForward(int diceNum, int numOfToken)
 {
     switch (whosTurn)
     {
@@ -1524,9 +1600,9 @@ void moveForward(int diceNum, int whosTurn, int numOfToken)
     }
 }
 
-void toHomeBase(int numOfToken, int whosTurn)
+void toHomeBase(int numOfToken, int index)
 {
-    switch (whosTurn)
+    switch (index)
     {
     case 1:
         red[numOfToken].pos = 0;
@@ -1549,7 +1625,7 @@ void toHomeBase(int numOfToken, int whosTurn)
     }
 }
 
-void outFromHomeBase(int numOfToken, int whosTurn)
+void outFromHomeBase(int numOfToken)
 {
     switch (whosTurn)
     {
@@ -1574,7 +1650,7 @@ void outFromHomeBase(int numOfToken, int whosTurn)
     }
 }
 
-void moveToSafeZone(int numOfToken, int whosTurn, int diceNum)
+void moveToSafeZone(int numOfToken, int diceNum)
 {
     switch (whosTurn)
     {
@@ -2219,5 +2295,29 @@ char tokenShown(int index)
     default:
         return 'n';
         break;
+    }
+}
+
+int whosOpponents(char color)
+{
+    switch (color) {
+        case 'r':
+            return 0;
+            break;
+            
+        case 'g' :
+            return 1;
+            break;
+            
+        case 'y':
+            return 2;
+            break;
+            
+        case 'b' :
+            return 3;
+            break;
+            
+        default:
+            break;
     }
 }
