@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
 // #include <stdbool.h>
 
 /* OS Detection to make sure screen clearing, sleep, and curses function works */
@@ -91,7 +92,7 @@ int numberOfBots;
 // Who's take the turn
 int whosTurn;
 // Count how many turn that already done
-int count=0;
+int count = 0;
 
 /* Function Prototype */
 
@@ -454,6 +455,14 @@ void printTokens();
 */
 char tokenShown(int index);
 
+/*
+    Input :
+    @token lower case or upper case A, B, C, or D that's going to be converted
+    Output : 0 to 3 depending on the input
+    Author : Muhammad Fauzan L.
+*/
+int tokenCharToInt(char token);
+
 int main()
 {
     // Curses mode intialization
@@ -484,34 +493,35 @@ int main()
             Play new game here
             While not gameover, showboard and option box, check who's turn, play
         */
-            //check who's turn
-            whosTurn = moveToNextTurn();
-            //play
-            int diceNum = RollADice();
-            
-            Tokens temp[4];
-            for (int i=0; i<4; i++) {
-                temp[i] = getTokens(i);
-            }
-            
-            //check if it is the user turn
-            if (!players[whosTurn].comp) {
-            
-                //check the possible move
-                char posmov[4];
-                getPossibleMove(*posmov,temp,diceNum);
-                
-                //get number of token that want to be move
-                int numOfToken = getNumOfToken(posmov);
-                
-                //move the token
-                moveToken(diceNum, temp[numOfToken], posmov[numOfToken], numOfToken);
-            }
-            else
-            {
-                //play the bot
-            }
-            
+        //check who's turn
+        whosTurn = moveToNextTurn();
+        //play
+        int diceNum = RollADice();
+
+        Tokens temp[4];
+        for (int i = 0; i < 4; i++)
+        {
+            temp[i] = getTokens(i);
+        }
+
+        //check if it is the user turn
+        if (!players[whosTurn].comp)
+        {
+
+            //check the possible move
+            char posmov[4];
+            getPossibleMove(*posmov, temp, diceNum);
+
+            //get number of token that want to be move
+            int numOfToken = getNumOfToken(posmov);
+
+            //move the token
+            moveToken(diceNum, temp[numOfToken], posmov[numOfToken], numOfToken);
+        }
+        else
+        {
+            //play the bot
+        }
 
     case 1:
         /*
@@ -1389,22 +1399,23 @@ int RollADice()
 
 Tokens getTokens(int i)
 {
-    switch (whosTurn) {
-        case 1:
-                return red[i];
-            break;
-        case 2:
-                return green[i];
-            break;
-        case 3:
-                return yellow[i];
-            break;
-        case 4:
-                return blue[i];
-            break;
-            
-        default:
-            break;
+    switch (whosTurn)
+    {
+    case 1:
+        return red[i];
+        break;
+    case 2:
+        return green[i];
+        break;
+    case 3:
+        return yellow[i];
+        break;
+    case 4:
+        return blue[i];
+        break;
+
+    default:
+        break;
     }
 }
 
@@ -1419,14 +1430,15 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
     Tokens opponents;
 
     opponents = isThereOpponents(temp, temp.pos + diceNum);
-    
+
     if (posmov == 'm')
     {
         //check if the token can move to safe zone or not
         if (isTransitionToSafezone(temp, diceNum))
         {
             moveToSafeZone(numOfToken, diceNum);
-            printf("Token %d move %d step to safe zone \n", numOfToken, diceNum);
+            clearOptionBox();
+            mvwprintw(options, 1, 1, "Token %c move %d step to safe zone", tokenShown(numOfToken), diceNum);
         }
         else
         {
@@ -1435,92 +1447,147 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
             {
                 //initialize the index of opponent
                 int op = whosOpponents(opponents.col);
-                
-                //suitMenu()
                 int choice, opChoice; //choice is choosen by user and opChoice is random
-                suitMenu(choice);
-                opChoice = suitRandom();
-                
-                //suitCheck()
-                int whosWin;
-                whosWin = suitCheck(choice, opChoice);
-                
+                int whosWin;          // Storage to show who won
+
+                do
+                {
+                    // Clear out the option box
+                    clearOptionBox();
+                    // Get user input on suit menu
+                    suitMenu(&choice);
+                    // Do random suit for the bot
+                    opChoice = suitRandom();
+                    // Check who won
+                    whosWin = suitCheck(choice, opChoice);
+                } while (whosWin == 0);
+
                 //if win then token moveForward opponents moveToHome and vice versa
                 if (whosWin == 1) //if user win
                 {
-                    moveForward(diceNum,numOfToken);
-                    toHomeBase(numOfToken, op+1);
-                } else
+                    moveForward(diceNum, numOfToken);
+                    toHomeBase(numOfToken, op + 1);
+                }
+                else
                 {
                     toHomeBase(numOfToken, whosTurn);
                 }
             }
             else
             {
+                clearOptionBox();
                 moveForward(diceNum, numOfToken);
-                printf("Token %d move %d step to board no-%d\n", numOfToken, diceNum, temp.pos + diceNum);
+                mvwprintw(options, 1, 1, "Token %c move %d step to board no-%d", tokenShown(numOfToken), diceNum, temp.pos + diceNum);
             }
         }
     }
     else if (posmov == 'o')
     {
-        printf("Token %d enter the board", numOfToken);
+        clearOptionBox();
+        mvwprintw(options, 1, 1, "Token %c enter the board", tokenShown(numOfToken));
         //check if there is opponents with modul isThere opponents
         if ((opponents.col != temp.col) && (opponents.col != 'n'))
         {
-            //suitMenu()
-            //suitCheck()
-            //if win then token don't have to back to home
+            //initialize the index of opponent
+            int op = whosOpponents(opponents.col);
+            int choice, opChoice; //choice is choosen by user and opChoice is random
+            int whosWin;          // Storage to show who won
+
+            do
+            {
+                // Clear out the option box
+                clearOptionBox();
+                // Get user input on suit menu
+                suitMenu(&choice);
+                // Do random suit for the bot
+                opChoice = suitRandom();
+                // Check who won
+                whosWin = suitCheck(choice, opChoice);
+            } while (whosWin == 0);
+
+            //if win then token moveForward opponents moveToHome and vice versa
+            if (whosWin == 1) //if user win
+            {
+                moveForward(diceNum, numOfToken);
+                toHomeBase(numOfToken, op + 1);
+            }
+            else
+            {
+                toHomeBase(numOfToken, whosTurn);
+            }
         }
         //end the turn
     }
-    
 }
 
 void getPossibleMove(char *posmov, Tokens temp[], int diceNum)
 {
-    printf("Tokens that can be move : ");
-    int j=0;
+    // Clear out the option box before
+    clearOptionBox();
+    // Labeling
+    printToOptionBox("Tokens that can be move : ", 1, 1);
+    int j = 0;
     for (int i = 0; i < 4; i++)
     {
+        // Check for possible move
         posmov[i] = possibleMove(diceNum, temp[i].pos, temp[i].safe);
         if (posmov[i] == 's')
         {
+            // If tokens are stuck continue
             j++;
             continue;
         }
         else
         {
-            printf("%d ", i + 1);
+            // Show tokens that can be shown
+            printToOptionBox(tokenShown(i + 1), strlen("Tokens that can be move : ") + 1 + i, 1);
+            /*
+                Call the input here
+            */
         }
         if (j == 4)
         {
-            printf("There's no tokens that can be move");
+            // If there's no token that can be moved
+            printToOptionBox("There's no tokens that can be move", strlen("Tokens that can be move : ") + 1, 1);
             //end the turn
         }
     }
-    
-    printf("\n");
-    
 }
 
 int getNumOfToken(char posmov[])
 {
     int numOfToken;
-    
-    printf("Choose the token : ");
-    scanf("%d", &numOfToken);
-    
+    char token;
+
+    // Label the input
+    printToOptionBox("Choose the token : ", 2, 1);
+    // In case the cursor was set not to be shown
+    curs_set(1);
+    // Also show the echo of the user input
+    echo();
+    // Move the cursor
+    wmove(options, 2, strlen("Choose the token : "));
+    // Get the input
+    wscanw(options, "%c", &token);
+    numOfToken = tokenCharToInt(token);
+
+    // Check the validity
     while (!validateInputToken(numOfToken) || ((posmov[numOfToken - 1] == 's')))
     {
-        printf("The input isn't valid, please reenter the tokens!!\n");
-        printf("Choose the token : ");
-        scanf("%d", &numOfToken);
+        wmove(options, 2, 0);
+        // Clear the line to show not valid
+        clrtoeol();
+        // Show non validity
+        printToOptionBox("The input isn't valid, please reenter the tokens!!", 2, 1);
+        // Get input
+        printToOptionBox("Choose the token : ", 3, 1);
+        wmove(options, 3, strlen("Choose the token : "));
+        wscanw(options, "%c", &token);
+        numOfToken = tokenCharToInt(token);
     }
     numOfToken -= 1;
-    
-    return numOfToken;
 
+    return numOfToken;
 }
 
 char possibleMove(int diceNum, int x, bool safe)
@@ -1551,7 +1618,7 @@ char possibleMove(int diceNum, int x, bool safe)
 
 bool validateInputToken(int x)
 {
-    if (x > 0 && x < 5)
+    if (x >= 0 && x < 4)
     {
         return true;
     }
@@ -2065,24 +2132,24 @@ void positionToCoordinate(Tokens token, int *x, int *y)
 
 void printTokens()
 {
-    int tempHome[4];    // Counting how many tokens are in one homebase
-                        // The content are sorted by colour with the 
-                        // order of red, green, yellow, and blue
-    int i, j; // Looping
-    int x, y; // Temporary storage for the coordinate in the board
-    char tempShown; // Temporary place for the the shown string
+    int tempHome[4]; // Counting how many tokens are in one homebase
+                     // The content are sorted by colour with the
+                     // order of red, green, yellow, and blue
+    int i, j;        // Looping
+    int x, y;        // Temporary storage for the coordinate in the board
+    char tempShown;  // Temporary place for the the shown string
 
     // Initialize the array
-    for ( i = 0; i < 53; i++)
+    for (i = 0; i < 53; i++)
     {
         if (i < 4)
         {
             tempHome[i] = 0;
         }
     }
-    
+
     // Red tokens
-    for ( i = 0; i < 4; i++)
+    for (i = 0; i < 4; i++)
     {
         // Tokens that are still in homebase
         if (red[i].pos == 0)
@@ -2093,7 +2160,7 @@ void printTokens()
                 mvwprintw(board[2][11], 0, 0, tokenShown(i));
                 wrefresh(board[2][11]);
                 break;
-            
+
             case 1:
                 mvwprintw(board[2][12], 0, 0, tokenShown(i));
                 wrefresh(board[2][12]);
@@ -2126,11 +2193,10 @@ void printTokens()
             // Refersh the board
             wrefresh(board[x][y]);
         }
-        
     }
-    
+
     // Green tokens
-    for ( i = 0; i < 4; i++)
+    for (i = 0; i < 4; i++)
     {
         // Tokens that are still in homebase
         if (green[i].pos == 0)
@@ -2141,7 +2207,7 @@ void printTokens()
                 mvwprintw(board[11][11], 0, 0, tokenShown(i));
                 wrefresh(board[11][11]);
                 break;
-            
+
             case 1:
                 mvwprintw(board[11][12], 0, 0, tokenShown(i));
                 wrefresh(board[11][12]);
@@ -2174,11 +2240,10 @@ void printTokens()
             // Refersh the board
             wrefresh(board[x][y]);
         }
-        
     }
 
     // Yellow tokens
-    for ( i = 0; i < 4; i++)
+    for (i = 0; i < 4; i++)
     {
         // Tokens that are still in homebase
         if (yellow[i].pos == 0)
@@ -2189,7 +2254,7 @@ void printTokens()
                 mvwprintw(board[11][2], 0, 0, tokenShown(i));
                 wrefresh(board[11][2]);
                 break;
-            
+
             case 1:
                 mvwprintw(board[11][3], 0, 0, tokenShown(i));
                 wrefresh(board[11][3]);
@@ -2225,7 +2290,7 @@ void printTokens()
     }
 
     // Blue tokens
-    for ( i = 0; i < 4; i++)
+    for (i = 0; i < 4; i++)
     {
         // Tokens that are still in homebase
         if (blue[i].pos == 0)
@@ -2236,7 +2301,7 @@ void printTokens()
                 mvwprintw(board[2][2], 0, 0, tokenShown(i));
                 wrefresh(board[2][2]);
                 break;
-            
+
             case 1:
                 mvwprintw(board[2][3], 0, 0, tokenShown(i));
                 wrefresh(board[2][3]);
@@ -2279,7 +2344,7 @@ char tokenShown(int index)
     case 0:
         return 'A';
         break;
-    
+
     case 1:
         return 'B';
         break;
@@ -2300,24 +2365,51 @@ char tokenShown(int index)
 
 int whosOpponents(char color)
 {
-    switch (color) {
-        case 'r':
-            return 0;
-            break;
-            
-        case 'g' :
-            return 1;
-            break;
-            
-        case 'y':
-            return 2;
-            break;
-            
-        case 'b' :
-            return 3;
-            break;
-            
-        default:
-            break;
+    switch (color)
+    {
+    case 'r':
+        return 0;
+        break;
+
+    case 'g':
+        return 1;
+        break;
+
+    case 'y':
+        return 2;
+        break;
+
+    case 'b':
+        return 3;
+        break;
+
+    default:
+        break;
+    }
+}
+
+int tokenCharToInt(char token)
+{
+    switch (tolower(token))
+    {
+    case 'a':
+        return 0;
+        break;
+
+    case 'b':
+        return 1;
+        break;
+
+    case 'c':
+        return 2;
+        break;
+
+    case 'd':
+        return 3;
+        break;
+
+    default:
+        return -1;
+        break;
     }
 }
