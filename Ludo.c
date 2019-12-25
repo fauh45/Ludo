@@ -60,6 +60,7 @@ typedef struct
 } Player;
 
 WINDOW *board[15][15]; // Ludo board (graphically)
+WINDOW *options; // The box mmenu below of the board for the player to choose many things
 
 Player players[4]; // List of players
 
@@ -271,7 +272,7 @@ void moveForward(int diceNum, int whosTurn, int numOfToken);
 /*
     Initial State : Token in initial position
     Input :
-    @diceNum the dice number that shown up
+    @numOfToken the index number of token that want to move
     @whosTurn [pemain yang sedang giliran]
     Final State : Token is back to home
     Author : Marissa Nur Amalia
@@ -287,6 +288,17 @@ void toHomeBase(int numOfToken, int whosTurn);
     Author : Marissa Nur Amalia
 */
 void outFromHomeBase(int numOfToken, int whosTurn);
+
+/*
+    Initial State : Token is in home
+    Input :
+    @diceNum the dice number that shown up
+    @whosTurn [pemain yang sedang giliran]
+    @numOfToken
+    Final State : Token is in safe zone
+    Author : Marissa Nur Amalia
+*/
+void moveToSafeZone(int numOfToken, int whosTurn, int diceNum);
 
 /*
     Input :
@@ -314,6 +326,60 @@ bool isTransitionToSafezone(Tokens token, int diceroll);
 */
 int distanceBetween(Tokens token1, Tokens token2);
 
+/*
+    Initial State : Option box is not shown
+    Final State : Option box is shown
+    Author : Muhammad Fauzan L.
+*/
+void showOptionBox();
+
+/*
+    Initial State : Option box is shown
+    Final State : Option box is not shown and destroyed
+    Author : Muhammad Fauzan L.
+*/
+void destroyOptionBox();
+
+/*
+    Initial State : Option box contains other content
+    Final State : Option box is clear of any content except the border
+    Author : Muhammad Fauzan L.
+*/
+void clearOptionBox();
+
+/*
+    Input :
+    @player1 player one suit choice
+    @player2 player two suit choice
+    suit choice consist of a number from 1 to 3, where
+    1 -> Kertas
+    2 -> Gunting
+    3 -> Batu
+    Output : 1 if player one won, 2 if player 2 won, and 0 if it's a draw
+    Author : Muhammad Fauzan L.
+*/
+int suitCheck(int player1, int player2);
+
+/*
+    Initial State : Suit menu is not shown
+    Final State : User has inputted a choice
+    Input : 
+    @input 1 to 4 of suit choice as described in suitcheck
+    Author : Muhammad Fauzan L.
+*/
+void suitMenu(int *choice);
+
+/*
+    Initial State : The inputted string are not shown in option box
+    Final State : The inputted string shown in option box
+    Input :
+    @input[] the string that is going to be shown at the option box
+    @x row position
+    @y position in collumns
+    Author : Muhammad Fauzan L.
+*/
+void printToOptionBox(char input[], int x, int y);
+
 int main()
 {
     // Curses mode intialization
@@ -337,17 +403,39 @@ int main()
     init_pair(BOARD_WHITE, COLOR_BLACK, COLOR_WHITE);
     init_pair(BOARD_BLACK, COLOR_WHITE, COLOR_BLACK);
         
-    printw("%d", RollADice());
+    switch (getUserChoiceinMenu())
+    {
+    case 0:
+        /*
+            Play new game here
+            While not gameover, showboard and option box, check who's turn, play
+        */
+        break;
+    
+    case 1:
+        /*
+            Play resumed game here
+            Check if file exist, check if file empty, load save game into variable, play as usual
+        */
+        break;
 
-    getch();
+    case 2:
+        /*
+            Show highscore here
+        */
+        break;
 
-    /* 
-        Add more code here!
-    */
+    case 3:
+        /*
+            Exit the game here
+            Just do nothing as the endwin and return 0 is right down of this selection
+        */
+        break;
+    }
 
     // Curses mode end
     endwin();
-    return 0;   
+    return 0;
 }
 
 /* Function Body */
@@ -1200,32 +1288,27 @@ void moveToken(int diceNum, int whosTurn)
 {
     int dadu, pos[4];
     char posmov[4];
-    Tokens temp[4];
+    Tokens temp[4], opponents;
     
     switch (whosTurn) {
         case 1:
             for (int i=0; i<4; i++) {
-                temp[i].pos = red[i].pos; //bisa diganti tokens[i].pos
-                temp[i].safe = red[i].safe;
+                temp[i] = red[i];
             }
             break;
         case 2:
             for (int i=0; i<4; i++) {
-                temp[i].pos = green[i].pos; //bisa diganti tokens[i+4].pos
-                temp[i].safe = green[i].safe;
+                temp[i] = green[i];
             }
             break;
         case 3:
             for (int i=0; i<4; i++) {
-                temp[i].pos = yellow[i].pos; //bisa diganti tokens[i+7].pos
-                temp[i].safe = green[i].safe;
+                temp[i] = yellow[i];
             }
             break;
-           
         case 4:
             for (int i=0; i<4; i++) {
-                temp[i].pos = blue[i].pos; //bisa diganti tokens[i+10].pos
-                temp[i].safe = blue[i].safe;
+                temp[i] = blue[i];
             }
             break;
             
@@ -1252,32 +1335,45 @@ void moveToken(int diceNum, int whosTurn)
     //check if the player comp or not
     if (!players[whosTurn].comp)
     {
-        int pilihantoken;
+        int numOfToken;
             printf("Choose the token : ");
-            scanf("%d", &pilihantoken);
-            while (!validateInputToken(pilihantoken) || ((posmov[pilihantoken-1] == 's'))) {
+            scanf("%d", &numOfToken);
+            while (!validateInputToken(numOfToken) || ((posmov[numOfToken-1] == 's'))) {
                     printf("The input isn't valid, please reenter the tokens!!\n");
                     printf("Choose the token : ");
-                    scanf("%d", &pilihantoken);
+                    scanf("%d", &numOfToken);
                 }
-        if (posmov[pilihantoken-1] == 'm') {
-            printf("Token %d move %d step to board no-%d\n", pilihantoken, dadu, temp[pilihantoken-1].pos+dadu);
-            
+        numOfToken -= 1;
+        opponents = isThereOpponents(temp[numOfToken], temp[numOfToken].pos+diceNum);
+        if (posmov[numOfToken] == 'm') {
             //check if the token can move to safe zone or not
-            //if true then the pos is (-) number of board that
-            //if the token can move forward to safe zone then the turn is over
+            if (isTransitionToSafezone(temp[numOfToken], diceNum)) {
+                moveToSafeZone(numOfToken, whosTurn, diceNum);
+                printf("Token %d move %d step to safe zone \n", numOfToken, dadu);
+            }
+            else
+            {
+                //check if there is opponents with modul isThere opponents
+                if ((opponents.col != temp[numOfToken].col) && (opponents.col != 'n')) {
+                    //suitMenu()
+                    //suitCheck()
+                    //if win then token moveForward opponents moveToHome and vice versa
+                }
+                else
+                {
+                    moveForward(diceNum, whosTurn, numOfToken);
+                    printf("Token %d move %d step to board no-%d\n", numOfToken, dadu, temp[numOfToken].pos+dadu);
+                }
+            }
+        } else if (posmov[numOfToken] == 'o'){
+            printf("Token %d enter the board", numOfToken);
             
             //check if there is opponents with modul isThere opponents
-            //if there is opponents then the player have to suit
-            //the player that win can move forward and the player that lose have to back to home
-            
-            //end the turn
-        } else if (posmov[pilihantoken] == 'o'){
-            printf("Token %d enter the board", pilihantoken);
-            //check if there is opponents with modul isThere opponents
-            //if there is opponents then the player have to suit
-            //the player that win can move forward and the player that lose have to back to home
-            
+            if ((opponents.col != temp[numOfToken].col) && (opponents.col != 'n')) {
+                //suitMenu()
+                //suitCheck()
+                //if win then token don't have to back to home
+            }
             //end the turn
         }
     }
@@ -1322,24 +1418,28 @@ void moveForward(int diceNum, int whosTurn, int numOfToken)
     switch (whosTurn) {
         case 1:
             red[numOfToken].pos += diceNum;
+            red[numOfToken].relpos += diceNum;
             if (red[numOfToken].pos > 52) {
                 red[numOfToken].pos -= 52;
             }
             break;
         case 2:
             green[numOfToken].pos += diceNum;
+            green[numOfToken].relpos += diceNum;
             if (green[numOfToken].pos > 52) {
                 green[numOfToken].pos -= 52;
             }
             break;
         case 3:
             yellow[numOfToken].pos += diceNum;
+            yellow[numOfToken].relpos += diceNum;
             if (yellow[numOfToken].pos > 52) {
                 yellow[numOfToken].pos -= 52;
             }
             break;
         case 4:
             blue[numOfToken].pos += diceNum;
+            blue[numOfToken].relpos += diceNum;
             if (blue[numOfToken].pos > 52) {
                 blue[numOfToken].pos -= 52;
             }
@@ -1354,15 +1454,19 @@ void toHomeBase(int numOfToken, int whosTurn)
     switch (whosTurn) {
         case 1:
             red[numOfToken].pos = 0;
+            red[numOfToken].relpos = 0;
             break;
         case 2:
             green[numOfToken].pos = 0;
+            green[numOfToken].relpos = 0;
             break;
         case 3:
             yellow[numOfToken].pos = 0;
+            yellow[numOfToken].relpos = 0;
             break;
         case 4:
             blue[numOfToken].pos = 0;
+            blue[numOfToken].relpos = 0;
             break;
         default:
             break;
@@ -1374,18 +1478,180 @@ void outFromHomeBase(int numOfToken, int whosTurn)
     switch (whosTurn) {
         case 1:
             red[numOfToken].pos = 1;
+            red[numOfToken].relpos = 1;
             break;
         case 2:
             green[numOfToken].pos = 14;
+            green[numOfToken].relpos = 1;
             break;
         case 3:
             yellow[numOfToken].pos = 28;
+            yellow[numOfToken].relpos = 1;
             break;
         case 4:
             blue[numOfToken].pos = 41;
+            blue[numOfToken].relpos = 1;
             break;
         default:
             break;
     }
 }
 
+<<<<<<< HEAD
+void moveToSafeZone(int numOfToken, int whosTurn, int diceNum)
+{
+    switch (whosTurn) {
+        case 1:
+            red[numOfToken].pos = (red[numOfToken].pos + diceNum) - 52;
+            red[numOfToken].relpos = red[numOfToken].pos;
+            red[numOfToken].safe = true;
+            break;
+        case 2:
+            green[numOfToken].pos = (green[numOfToken].pos + diceNum) - 12;
+            green[numOfToken].relpos = green[numOfToken].pos;
+            green[numOfToken].safe = true;
+            break;
+        case 3:
+            yellow[numOfToken].pos = (yellow[numOfToken].pos + diceNum) - 25;
+            yellow[numOfToken].relpos = yellow[numOfToken].pos;
+            yellow[numOfToken].safe = true;
+            break;
+        case 4:
+            blue[numOfToken].pos = (blue[numOfToken].pos + diceNum) - 39;
+            blue[numOfToken].relpos = blue[numOfToken].pos;
+            blue[numOfToken].safe = true;
+            break;
+        default:
+            break;
+    }
+}
+=======
+void showOptionBox()
+{
+    // Initialized the box under the board
+    options = newWindow(7, 58, 1, 31);
+
+    // Create the border of the box
+    wborder(options, 0, 0, 0, 0, 0, 0, 0, 0);
+    wrefresh(options);
+}
+
+void destroyOptionBox()
+{
+    // Clean up the border of the option box
+    wborder(options, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+
+    // Remove the content
+    werase(options);
+
+    // Refresh it
+    wrefresh(options);
+
+    // Remove it
+    delwin(options);
+}
+
+void clearOptionBox()
+{
+    // Clear out the box
+    werase(options);
+
+    // Redraw the box as erasing it also remove the border
+    wborder(options, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    // Refresh the box
+    wrefresh(options);
+}
+
+int suitCheck(int player1, int player2)
+{
+    // If they choose the same option then it's a draw
+    if (player1 == player2)
+    {
+        return 0;
+    }
+    // Kertas vs Gunting, gunting won
+    else if (player1 == 1 && player2 == 2) return 2;
+    // Kertas vs Batu, batu won
+    else if (player1 == 1 && player2 == 3) return 1;
+    // Gunting vs Kertas, gunting won
+    else if (player1 == 2 && player2 == 1) return 1;
+    // Gunting vs Batu, batu won
+    else if (player1 == 2 && player2 == 3) return 2;
+    // Batu vs Kertas, kertas won
+    else if (player1 == 3 && player2 == 1) return 1;
+    // Batu vs Gunting, batu won
+    else if (player1 == 3 && player2 == 2) return 1;
+    
+}
+
+void suitMenu(int *choice)
+{
+    // Make sure the option box is clear of content
+    clearOptionBox();
+
+    // Positioning and looping
+    int i, highlight = 0, position;
+    
+    // Options for the user
+    char options[3][10] = {"Kertas", "Gunting", "Batu"};
+    char item[9];
+    char ch;
+
+    // Enable keypad mode for key up and down
+    keypad(options, true);
+
+    // Make sure what has been entered is not shown
+    noecho();
+
+    // Hide the cursor
+    curs_set(0);
+    
+    // Show label to informed the user
+    mvwprintw(options, 1, 1, "Pilih opsi untuk suit");
+    position = strlen("Pilih opsi untuk suit");
+
+    // Loop until has been inputed
+    while (1)
+    {
+        // Show the options
+        for (i = 0; i < 4; i++)
+        {
+            // Show the highlighted options with highlights
+            if (i == highlight) wattron(options, A_REVERSE);
+
+            mvwprintw(options, i+1, position + 1, options[i]);
+
+            if (i == highlight) wattroff(options, A_REVERSE);
+        }
+
+        // Get user input
+        ch = wgetch(options);
+        
+        if (ch == (char) KEY_UP)
+        {
+            highlight--;
+            highlight = (highlight < 0) ? 2 : highlight;
+        }
+        else if (ch == (char) KEY_DOWN)
+        {
+            highlight++;
+            highlight = (highlight > 2) ? 0 : highlight;
+        }
+        else if (ch == 10)  // Somehow the usage of KEY_ENTER doesn't work, so char 10 is used instead
+        {
+            *choice = highlight + 1;
+            break;
+        }
+    }
+}
+
+void printToOptionBox(char input[], int x, int y)
+{
+    // Print it
+    mvwprintw(options, x, y, input);
+
+    // Refresh the box
+    wrefresh(options);
+}
+>>>>>>> 9505151efab72cebeb8e530b5490ac27bdacd53b
