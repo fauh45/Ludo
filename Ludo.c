@@ -265,6 +265,7 @@ Tokens getTokens(int index);
     @numOfToken the number of token of user that want to be move
     Final State : Token in the desired position, back to home base if failed the suit, or can't move
     Author : Marissa Nur Amalia
+    Version : v.2
 */
 void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken);
 
@@ -346,6 +347,7 @@ void moveToSafeZone(int numOfToken, int diceNum);
     Input : -
     Output : players that takes turn
     Author : Marissa Nur Amalia
+    Version : v.2
 */
 int moveToNextTurn();
 
@@ -485,12 +487,20 @@ bool isAllBotWin();
 bool isUserWin();
 
 /*
- 
+    Input :
+    @token array of token that want to be initialize
+    @index the player's index whose token want to be checked
+    Initial State : the array of token that want to be checked isn't intialized
+    Final State : the array of token that want to be checked is initialized
+    Author : Marissa Nur Amalia
 */
 void tokensOfPlayer(Tokens *token, int index);
 
 /*
- 
+    Input :
+    @index the player's index that want to be checked is it win or not
+    Output : Status of player is it already win or not (finished or not)
+    Author : Marissa Nur Amalia
 */
 bool isItWin(int index);
 
