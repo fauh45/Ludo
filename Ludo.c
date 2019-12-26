@@ -463,6 +463,37 @@ char tokenShown(int index);
 */
 int tokenCharToInt(char token);
 
+/*
+    Input : All player's token
+    Output : Status of game, is it game over or not
+    Author : Marissa Nur Amalia
+*/
+bool isGameOver();
+
+/*
+    Input : All bot's token
+    Output : is all bot win or not
+    Author : Marissa Nur Amalia
+*/
+bool isAllBotWin();
+
+/*
+    Input : User's token
+    Output : is user already win or not
+    Author : Marissa Nur Amalia
+*/
+bool isUserWin();
+
+/*
+ 
+*/
+void tokensOfPlayer(Tokens *token, int index);
+
+/*
+ 
+*/
+bool isItWin(int index);
+
 int main()
 {
     // Curses mode intialization
@@ -2410,6 +2441,104 @@ int tokenCharToInt(char token)
 
     default:
         return -1;
+        break;
+    }
+}
+
+
+bool isEveryoneWin()
+{
+    int howManyBotsAreWin;
+    for (int i=0; i<numberOfBots+1; i++) {
+        if (players[i].comp) {
+            if (isItWin(i)) {
+                howManyBotsAreWin++;
+            }
+        }
+    }
+    if (howManyBotsAreWin == numberOfBots) {
+        return true;
+    }
+    else return false;
+}
+
+bool isUserWin()
+{
+    for (int i=0; i<numberOfBots+1; i++)
+    {
+        if (!players[i].comp)
+        {
+            if (isItWin(i))
+            {
+                return true;
+            }
+            else return false;
+        }
+    }
+}
+
+bool isGameOver()
+{
+    if ((isEveryoneWin()) || (isUserWin()))
+    {
+        return true;
+    }
+    else return false;
+}
+
+bool isItWin(int index)
+{
+    Tokens token;
+    int finishedToken;
+    tokensOfPlayer(&token, index);
+    for (int i=0; i<4; i++)
+    {
+        if ((token.pos == 7) && token.safe) //the safezone number 7 is finish line
+        {
+            finishedToken++;
+        }
+    }
+    if (finishedToken == 4)
+    {
+        return true;
+    }
+    else return false;
+}
+
+void tokensOfPlayer(Tokens *token, int index)
+{
+    //because of function can return array then instead of function, initialize the token can use procedure to initialize the players token to be checked
+    switch (index)
+    {
+    case 0:
+        for (int i=0; i<4; i++)
+        {
+            token[i] = red[i];
+        }
+        break;
+
+    case 1:
+        for (int i=0; i<4; i++)
+        {
+            token[i] = green[i];
+        }
+        break;
+
+    case 2:
+        for (int i=0; i<4; i++)
+        {
+            token[i] = yellow[i];
+        }
+        break;
+
+    case 3:
+        for (int i=0; i<4; i++)
+        {
+            token[i] = blue[i];
+        }
+        break;
+
+    default:
         break;
     }
 }
