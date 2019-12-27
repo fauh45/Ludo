@@ -299,7 +299,7 @@ char possibleMove(int diceNum, int pos, bool safe);
     Output : Get and show user possibility of token to move, to out from home, or can't move
     Author : Marissa Nur Amalia
 */
-void getPossibleMove(char *posmov, Tokens temp[], int diceNum);
+void getPossibleMove(char posmov[], Tokens temp[], int diceNum);
 
 /*
     Initial State : The input number of choice is want to be checked
@@ -500,7 +500,7 @@ bool isUserWin();
     Final State : the array of token that want to be checked is initialized
     Author : Marissa Nur Amalia
 */
-void tokensOfPlayer(Tokens *token, int index);
+void tokensOfPlayer(Tokens token[], int index);
 
 /*
     Input :
@@ -564,6 +564,8 @@ int getDiceRoll();
 
 int main()
 {
+    int choice[3];
+
     // Curses mode intialization
     initscr();
 
@@ -593,6 +595,18 @@ int main()
             Play new game here
             While not gameover, showboard and option box, check who's turn, play
         */
+        showNewGameMenu(choice);
+        initPlayerData(choice);
+
+        clear();
+        showOptionBox();
+
+        // Redraw the board
+        showBoard();
+
+        // Redraw the tokens
+        printTokens();
+
         while (!isGameOver())
         {
             // Start the turn
@@ -601,10 +615,11 @@ int main()
             moveToNextTurn();
         }
 
+        getch();
         /*
             End of game handling here
         */
-       
+
         break;
 
     case 1:
@@ -1371,9 +1386,10 @@ void initPlayerData(int botIndexes[3])
     }
 
     // Get all uniqe random number
+    i = 0;
     while (i < 4)
     {
-        temp = rand() % 4;
+        temp = abs(rand() % 4);
 
         for (j = 0; j < i; j++)
         {
@@ -1385,10 +1401,11 @@ void initPlayerData(int botIndexes[3])
 
         if (j == i)
         {
-            randTemp[i++] = temp;
+            randTemp[i] = temp;
+            i++;
         }
     }
-
+    printw("%d", randTemp[0]);
     initHumanPlayerData(randTemp[0]);
 
     for (i = 0, j = 1; i < numberOfBots && j < 4; i++, j++)
@@ -1625,7 +1642,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
     // End the turn
 }
 
-void getPossibleMove(char *posmov, Tokens temp[], int diceNum)
+void getPossibleMove(char posmov[], Tokens temp[], int diceNum)
 {
     // Clear out the option box before
     clearOptionBox();
@@ -2563,12 +2580,12 @@ bool isGameOver()
 
 bool isItWin(int index)
 {
-    Tokens token;
-    int finishedToken;
-    tokensOfPlayer(&token, index);
+    Tokens token[4];
+    int finishedToken = 0;
+    tokensOfPlayer(token, index);
     for (int i = 0; i < 4; i++)
     {
-        if ((token.pos == 7) && token.safe) //the safezone number 7 is finish line
+        if ((token[i].pos == 7) && token[i].safe) //the safezone number 7 is finish line
         {
             finishedToken++;
         }
@@ -2581,7 +2598,7 @@ bool isItWin(int index)
         return false;
 }
 
-void tokensOfPlayer(Tokens *token, int index)
+void tokensOfPlayer(Tokens token[], int index)
 {
     //because of function can return array then instead of function, initialize the token can use procedure to initialize the players token to be checked
     switch (index)
@@ -2722,11 +2739,11 @@ void sortHighScore()
 
 void aTurn()
 {
-    char posmov[4];         // Storage for possible move
-    int diceRoll = 0;       // Temporary storage for diceroll
-    int numberOfSix = 0;    // Count the number of the six in the dice roll
-    int numOfToken;         // Number of token that's going to be moved
-    Tokens temp[4];         // Temporary token storage for the current player
+    char posmov[4];      // Storage for possible move
+    int diceRoll = 0;    // Temporary storage for diceroll
+    int numberOfSix = 0; // Count the number of the six in the dice roll
+    int numOfToken;      // Number of token that's going to be moved
+    Tokens temp[4];      // Temporary token storage for the current player
 
     // Get the tokens
     for (int i = 0; i < 4; i++)
@@ -2751,8 +2768,8 @@ void aTurn()
             {
                 numberOfSix++;
             }
-            
-            getPossibleMove(*posmov, temp, diceRoll);
+
+            getPossibleMove(posmov, temp, diceRoll);
 
             // Get number of token that want to be move
             numOfToken = getNumOfToken(posmov);
