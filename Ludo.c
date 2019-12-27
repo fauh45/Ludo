@@ -2771,12 +2771,17 @@ void aTurn()
 
 int getDiceRoll()
 {
+    int roll;
     // Get clear the option box
     clearOptionBox();
 
     printToOptionBox("Press any key to roll the dice", 1, 1);
-    wmove(options, 2, 1);
+    curs_set(0);
+    wmove(options, 1, 1);
+    clrtoeol();
     getch();
 
-    return RollADice();
+    roll = RollADice();
+    mvwprintw(options, 1, 1, "You got %d", roll);
+    return roll;
 }
