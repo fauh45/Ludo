@@ -548,6 +548,20 @@ void writeHighScore(int newHighScore);
 */
 bool isHighScore(int caHighScore);
 
+/*
+    Initial State : A turn haven't been played yet
+    Final State : A turn is done
+    Author : Muhammad Fauzan L.
+*/
+void aTurn();
+
+/*
+    Input : None
+    Output : Dice number as rolled by user
+    Author : Muhammad Fauzan L.
+*/
+int getDiceRoll();
+
 int main()
 {
     // Curses mode intialization
@@ -557,6 +571,7 @@ int main()
     if (!has_colors())
     {
         printw("No color support on console");
+        getch();
         exit(1);
     }
 
@@ -571,7 +586,6 @@ int main()
     init_pair(BOARD_WHITE, COLOR_BLACK, COLOR_WHITE);
     init_pair(BOARD_BLACK, COLOR_WHITE, COLOR_BLACK);
 
-
     switch (getUserChoiceinMenu())
     {
     case 0:
@@ -579,35 +593,19 @@ int main()
             Play new game here
             While not gameover, showboard and option box, check who's turn, play
         */
-        //check who's turn
-        whosTurn = moveToNextTurn();
-        //play
-        int diceNum = RollADice();
-
-        Tokens temp[4];
-        for (int i = 0; i < 4; i++)
+        while (!isGameOver())
         {
-            temp[i] = getTokens(i);
+            // Start the turn
+            aTurn();
+            // Move to the next
+            moveToNextTurn();
         }
-
-        //check if it is the user turn
-        if (!players[whosTurn].comp)
-        {
-
-            //check the possible move
-            char posmov[4];
-            getPossibleMove(*posmov, temp, diceNum);
-
-            //get number of token that want to be move
-            int numOfToken = getNumOfToken(posmov);
-
-            //move the token
-            moveToken(diceNum, temp[numOfToken], posmov[numOfToken], numOfToken);
-        }
-        else
-        {
-            //play the bot
-        }
+        
+        /*
+            End of game handling here
+        */
+       
+        break;
 
     case 1:
         /*
@@ -1602,8 +1600,29 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 toHomeBase(numOfToken, whosTurn);
             }
         }
-        //end the turn
     }
+
+    // Add number of move
+    switch (temp.col)
+    {
+    case 'r':
+        players[0].move++;
+        break;
+
+    case 'g':
+        players[1].move++;
+        break;
+
+    case 'y':
+        players[2].move++;
+        break;
+
+    case 'b':
+        players[3].move++;
+        break;
+    }
+
+    // End the turn
 }
 
 void getPossibleMove(char *posmov, Tokens temp[], int diceNum)
@@ -2500,26 +2519,30 @@ int tokenCharToInt(char token)
     }
 }
 
-
 bool isAllBotWin()
 {
     int howManyBotsAreWin;
-    for (int i=0; i<numberOfBots+1; i++) {
-        if (players[i].comp) {
-            if (isItWin(i)) {
+    for (int i = 0; i < numberOfBots + 1; i++)
+    {
+        if (players[i].comp)
+        {
+            if (isItWin(i))
+            {
                 howManyBotsAreWin++;
             }
         }
     }
-    if (howManyBotsAreWin == numberOfBots) {
+    if (howManyBotsAreWin == numberOfBots)
+    {
         return true;
     }
-    else return false;
+    else
+        return false;
 }
 
 bool isUserWin()
 {
-    for (int i=0; i<numberOfBots+1; i++)
+    for (int i = 0; i < numberOfBots + 1; i++)
     {
         if (!players[i].comp)
         {
@@ -2527,18 +2550,15 @@ bool isUserWin()
             {
                 return true;
             }
-            else return false;
+            else
+                return false;
         }
     }
 }
 
 bool isGameOver()
 {
-    if ((isAllBotWin()) || (isUserWin()))
-    {
-        return true;
-    }
-    else return false;
+    return (isAllBotWin() || isUserWin());
 }
 
 bool isItWin(int index)
@@ -2546,7 +2566,7 @@ bool isItWin(int index)
     Tokens token;
     int finishedToken;
     tokensOfPlayer(&token, index);
-    for (int i=0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
         if ((token.pos == 7) && token.safe) //the safezone number 7 is finish line
         {
@@ -2557,7 +2577,8 @@ bool isItWin(int index)
     {
         return true;
     }
-    else return false;
+    else
+        return false;
 }
 
 void tokensOfPlayer(Tokens *token, int index)
@@ -2566,28 +2587,28 @@ void tokensOfPlayer(Tokens *token, int index)
     switch (index)
     {
     case 0:
-        for (int i=0; i<4; i++)
+        for (int i = 0; i < 4; i++)
         {
             token[i] = red[i];
         }
         break;
 
     case 1:
-        for (int i=0; i<4; i++)
+        for (int i = 0; i < 4; i++)
         {
             token[i] = green[i];
         }
         break;
 
     case 2:
-        for (int i=0; i<4; i++)
+        for (int i = 0; i < 4; i++)
         {
             token[i] = yellow[i];
         }
         break;
 
     case 3:
-        for (int i=0; i<4; i++)
+        for (int i = 0; i < 4; i++)
         {
             token[i] = blue[i];
         }
@@ -2602,66 +2623,62 @@ void initHighScore()
 {
     FILE *yey = fopen("highscore.txt", "wb");
     Score scr;
-    
+
     strncpy(scr.name, "Belum ada", 25);
     scr.score = 0;
-    
-     for (int i=0;i<10;i++)
-     {
-         fprintf(yey, "%s %d\n", scr.name, scr.score);
-     }
-}
 
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(yey, "%s %d\n", scr.name, scr.score);
+    }
+}
 
 void showHighScore()
 {
     FILE *yey = fopen("highscore.txt", "rb");
     Score scr;
- 
-//    printf(“WALL OF FAME\n”);
-//    printf(“HIGH SCORE OF DECADE\n”);
-    
-    for(int i=0; i<10;i++)
-     {
-         fscanf(yey,"%s %d\n", &scr.name, &scr.score);
-         printf("%d %s %d\n",(i+1), scr.name, scr.score);
-     }
+
+    //    printf(“WALL OF FAME\n”);
+    //    printf(“HIGH SCORE OF DECADE\n”);
+
+    for (int i = 0; i < 10; i++)
+    {
+        fscanf(yey, "%s %d\n", &scr.name, &scr.score);
+        printf("%d %s %d\n", (i + 1), scr.name, scr.score);
+    }
     fclose(yey);
 }
 
 void writeHighScore(int newHighScore)
 {
- FILE *X;
- Score scr;
- 
+    FILE *X;
+    Score scr;
+
     X = fopen("highscore.txt", "ab");
- 
+
     fprintf(X, "%s %d", scr.name, scr.score);
 
     sortHighScore();
 }
 
-
 bool isHighScore(int caHighScore)
 {
-     FILE *X;
-     Score scr;
+    FILE *X;
+    Score scr;
 
-     X = fopen("highscore.txt", "rb");
-    
-     for(int i=0; i<10; i++)
-     {
-       fscanf(X,"%s %d\n", &scr.name, &scr.score);
-       
-       if(scr.score < caHighScore)
-       {
-         return true;
-       }
-         
-     }
-     return false;
+    X = fopen("highscore.txt", "rb");
+
+    for (int i = 0; i < 10; i++)
+    {
+        fscanf(X, "%s %d\n", &scr.name, &scr.score);
+
+        if (scr.score < caHighScore)
+        {
+            return true;
+        }
+    }
+    return false;
 }
-
 
 void sortHighScore()
 {
@@ -2669,37 +2686,97 @@ void sortHighScore()
     Score scr[10], temp;
     int N;
     int i, j;
-    
+
     arrange = fopen("highscore.txt", "rb");
-    N=0;
+    N = 0;
     while (!feof(arrange))
     {
         fscanf(arrange, "%s %d\n", &scr[N].name, &scr[N].score);
         N++;
     }
-      
+
     fclose(arrange);
-          
-    for(i=0; i<N-1; i++)
+
+    for (i = 0; i < N - 1; i++)
     {
-        for(j=0; j<N-i-1; j++)
+        for (j = 0; j < N - i - 1; j++)
         {
-            if(scr[j].score < scr[j+1].score)
+            if (scr[j].score < scr[j + 1].score)
             {
-               temp = scr[j];
-               scr[j] = scr[j+1];
-               scr[j+1] = temp;
+                temp = scr[j];
+                scr[j] = scr[j + 1];
+                scr[j + 1] = temp;
             }
         }
     }
-    
+
     arrange = fopen("highscore.txt", "wb");
-     
-    for (i=0; i<10; i++)
+
+    for (i = 0; i < 10; i++)
     {
         fprintf(arrange, "%s %d\n", scr[i].name, scr[i].score);
     }
-    
-      fclose(arrange);
+
+    fclose(arrange);
 }
 
+void aTurn()
+{
+    char posmov[4];         // Storage for possible move
+    int diceRoll = 0;       // Temporary storage for diceroll
+    int numberOfSix = 0;    // Count the number of the six in the dice roll
+    int numOfToken;         // Number of token that's going to be moved
+    Tokens temp[4];         // Temporary token storage for the current player
+
+    // Get the tokens
+    for (int i = 0; i < 4; i++)
+    {
+        temp[i] = getTokens(i);
+    }
+
+    if (players[whosTurn - 1].comp)
+    {
+        /*
+            Handle bot players here
+        */
+    }
+    else
+    {
+        // Human player
+        diceRoll = getDiceRoll();
+
+        while (numberOfSix < 3)
+        {
+            if (diceRoll == 6)
+            {
+                numberOfSix++;
+            }
+            
+            getPossibleMove(*posmov, temp, diceRoll);
+
+            // Get number of token that want to be move
+            numOfToken = getNumOfToken(posmov);
+
+            // Move the token
+            moveToken(diceRoll, temp[numOfToken], posmov[numOfToken], numOfToken);
+
+            // Redraw the board
+            showBoard();
+
+            // Redraw the tokens
+            printTokens();
+        }
+    }
+}
+
+int getDiceRoll()
+{
+    // Get clear the option box
+    clearOptionBox();
+
+    printToOptionBox("Press any key to roll the dice", 1, 1);
+    wmove(options, 2, 1);
+    getch();
+
+    return RollADice();
+}
