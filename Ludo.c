@@ -259,6 +259,7 @@ int whosOpponents(char color);
     Input :
     @index the index of token that want to be initialize
     Output = Initialize the token of player that take the turn
+    
 */
 Tokens getTokens(int index);
 
@@ -2736,9 +2737,16 @@ void aTurn()
 
     if (players[whosTurn - 1].comp)
     {
-        /*
-            Handle bot players here
-        */
+        diceRoll = RollADice();
+        
+        
+        for (int i=0; i<4; i++)
+        {
+            posmov[i] = possibleMove(diceRoll, temp[i].pos, temp[i].safe);
+        }
+        
+        //passing the possible move to bot
+
     }
     else
     {
@@ -2747,11 +2755,6 @@ void aTurn()
 
         while (numberOfSix < 3)
         {
-            if (diceRoll == 6)
-            {
-                numberOfSix++;
-            }
-            
             getPossibleMove(*posmov, temp, diceRoll);
 
             // Get number of token that want to be move
@@ -2765,6 +2768,17 @@ void aTurn()
 
             // Redraw the tokens
             printTokens();
+            
+            if (diceRoll == 6)
+            {
+                numberOfSix++;
+                diceRoll = getDiceRoll();
+            }
+            else
+            {
+                break;
+            }
+            
         }
     }
 }
