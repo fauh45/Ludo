@@ -60,6 +60,12 @@ typedef struct
     int move;      //How much the player has move
 } Player;
 
+typedef struct
+{
+    char name[25];
+    int score;
+} Score;
+
 WINDOW *board[15][15]; // Ludo board (graphically)
 WINDOW *options;       // The box mmenu below of the board for the player to choose many things
 
@@ -504,6 +510,44 @@ void tokensOfPlayer(Tokens *token, int index);
 */
 bool isItWin(int index);
 
+/*
+    Initial State : The Highscore are not shown on screen
+    Final State : The Highscore are not shown on screen
+    Author : Marissa Nur Amalia
+*/
+void showHighScore();
+
+/*
+    Initial State : The Highscore that contain new highscore isn't sorted
+    Final State : The Highscore that contain new highscore is sorted
+    Author : Marissa Nur Amalia
+*/
+void sortHighScore();
+
+/*
+    Initial State : The file that contain highscore is empty
+    Final State : The file that contain highscore is initialize with 10 highscore
+    Author : Marissa Nur Amalia
+*/
+void initHighScore();
+
+/*
+    Initial State : The new highscore isn't written in the highscore
+    Input :
+    @newHighScore the new highscore after game
+    Final State : The new highscore isn't written in the highscore
+    Author : Marissa Nur Amalia
+*/
+void writeHighScore(int newHighScore);
+
+/*
+    Input :
+    @caHighScore the new score of finished game
+    Output : Status of the score is it highscore or not
+    Author : Marissa Nur Amalia
+*/
+bool isHighScore(int caHighScore);
+
 int main()
 {
     // Curses mode intialization
@@ -526,6 +570,7 @@ int main()
     init_pair(BOARD_YELLOW, COLOR_WHITE, COLOR_YELLOW);
     init_pair(BOARD_WHITE, COLOR_BLACK, COLOR_WHITE);
     init_pair(BOARD_BLACK, COLOR_WHITE, COLOR_BLACK);
+
 
     switch (getUserChoiceinMenu())
     {
@@ -2456,7 +2501,7 @@ int tokenCharToInt(char token)
 }
 
 
-bool isEveryoneWin()
+bool isAllBotWin()
 {
     int howManyBotsAreWin;
     for (int i=0; i<numberOfBots+1; i++) {
@@ -2489,7 +2534,7 @@ bool isUserWin()
 
 bool isGameOver()
 {
-    if ((isEveryoneWin()) || (isUserWin()))
+    if ((isAllBotWin()) || (isUserWin()))
     {
         return true;
     }
@@ -2552,3 +2597,109 @@ void tokensOfPlayer(Tokens *token, int index)
         break;
     }
 }
+
+void initHighScore()
+{
+    FILE *yey = fopen("highscore.txt", "wb");
+    Score scr;
+    
+    strncpy(scr.name, "Belum ada", 25);
+    scr.score = 0;
+    
+     for (int i=0;i<10;i++)
+     {
+         fprintf(yey, "%s %d\n", scr.name, scr.score);
+     }
+}
+
+
+void showHighScore()
+{
+    FILE *yey = fopen("highscore.txt", "rb");
+    Score scr;
+ 
+//    printf(“WALL OF FAME\n”);
+//    printf(“HIGH SCORE OF DECADE\n”);
+    
+    for(int i=0; i<10;i++)
+     {
+         fscanf(yey,"%s %d\n", &scr.name, &scr.score);
+         printf("%d %s %d\n",(i+1), scr.name, scr.score);
+     }
+    fclose(yey);
+}
+
+void writeHighScore(int newHighScore)
+{
+ FILE *X;
+ Score scr;
+ 
+    X = fopen("highscore.txt", "ab");
+ 
+    fprintf(X, "%s %d", scr.name, scr.score);
+
+    sortHighScore();
+}
+
+
+bool isHighScore(int caHighScore)
+{
+     FILE *X;
+     Score scr;
+
+     X = fopen("highscore.txt", "rb");
+    
+     for(int i=0; i<10; i++)
+     {
+       fscanf(X,"%s %d\n", &scr.name, &scr.score);
+       
+       if(scr.score < caHighScore)
+       {
+         return true;
+       }
+         
+     }
+     return false;
+}
+
+
+void sortHighScore()
+{
+    FILE *arrange;
+    Score scr[10], temp;
+    int N;
+    int i, j;
+    
+    arrange = fopen("highscore.txt", "rb");
+    N=0;
+    while (!feof(arrange))
+    {
+        fscanf(arrange, "%s %d\n", &scr[N].name, &scr[N].score);
+        N++;
+    }
+      
+    fclose(arrange);
+          
+    for(i=0; i<N-1; i++)
+    {
+        for(j=0; j<N-i-1; j++)
+        {
+            if(scr[j].score < scr[j+1].score)
+            {
+               temp = scr[j];
+               scr[j] = scr[j+1];
+               scr[j+1] = temp;
+            }
+        }
+    }
+    
+    arrange = fopen("highscore.txt", "wb");
+     
+    for (i=0; i<10; i++)
+    {
+        fprintf(arrange, "%s %d\n", scr[i].name, scr[i].score);
+    }
+    
+      fclose(arrange);
+}
+
