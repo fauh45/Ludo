@@ -1150,6 +1150,8 @@ void showNewGameMenu(int choice[3])
 
         while (1)
         {
+            wmove(options, 1, 1);
+            clrtoeol();
             // Show the current bot number
             mvwprintw(botchoice, 1, getMiddleX(botchoice, strlen("Bot no. 1")), "Bot no. %d", j + 1);
 
@@ -1405,7 +1407,6 @@ void initPlayerData(int botIndexes[3])
             i++;
         }
     }
-    printw("%d", randTemp[0]);
     initHumanPlayerData(randTemp[0]);
 
     for (i = 0, j = 1; i < numberOfBots && j < 4; i++, j++)
@@ -1662,7 +1663,8 @@ void getPossibleMove(char posmov[], Tokens temp[], int diceNum)
         else
         {
             // Show tokens that can be shown
-            printToOptionBox(tokenShown(i + 1), strlen("Tokens that can be move : ") + 1 + i, 1);
+            wprintw(options, "%c ", tokenShown(i));
+            wrefresh(options);
             /*
                 Call the input here
             */
