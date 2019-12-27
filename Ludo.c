@@ -2815,7 +2815,8 @@ int getDiceRoll()
     clrtoeol();
     getch();
 
-
-    return RollADice();
+    roll = RollADice();
+    mvwprintw(options, 1, 1, "You got %d", roll);
+    return roll;
 }
 
