@@ -96,7 +96,7 @@ Tokens blue[4];
 // Number of bots
 int numberOfBots;
 // Who's take the turn
-int whosTurn;
+int whosTurn = 1;
 // Count how many turn that already done
 int count = 0;
 
@@ -350,12 +350,12 @@ void outFromHomeBase(int numOfToken);
 void moveToSafeZone(int numOfToken, int diceNum);
 
 /*
-    Input : -
-    Output : players that takes turn
+    Initial State : in the beginning of turn, the variable whosTurn
+    Final State : set the variable whosTurn in new turn (?)
     Author : Marissa Nur Amalia
     Version : v.2
 */
-int moveToNextTurn();
+void moveToNextTurn();
 
 /*
     Input : 
@@ -579,11 +579,10 @@ int main()
             Play new game here
             While not gameover, showboard and option box, check who's turn, play
         */
-        //check who's turn
-        whosTurn = moveToNextTurn();
-        //play
-        int diceNum = RollADice();
 
+        //play
+            int diceNum = RollADice();
+        
         Tokens temp[4];
         for (int i = 0; i < 4; i++)
         {
@@ -608,6 +607,9 @@ int main()
         {
             //play the bot
         }
+            
+        //set who's turn for next turn
+        moveToNextTurn();
 
     case 1:
         /*
@@ -1505,10 +1507,10 @@ Tokens getTokens(int i)
     }
 }
 
-int moveToNextTurn()
+void moveToNextTurn()
 {
     count++;
-    return (count % numberOfBots + 1) + 1;
+    whosTurn = count % (numberOfBots + 1) + 1;
 }
 
 void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
