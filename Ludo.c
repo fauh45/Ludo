@@ -2280,22 +2280,22 @@ void printTokens()
             switch (tempHome[0])
             {
             case 0:
-                mvwprintw(board[2][11], 0, 0, tokenShown(i));
+                mvwprintw(board[2][11], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[2][11]);
                 break;
 
             case 1:
-                mvwprintw(board[2][12], 0, 0, tokenShown(i));
+                mvwprintw(board[2][12], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[2][12]);
                 break;
 
             case 2:
-                mvwprintw(board[3][11], 0, 0, tokenShown(i));
+                mvwprintw(board[3][11], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[3][11]);
                 break;
 
             case 3:
-                mvwprintw(board[3][12], 0, 0, tokenShown(i));
+                mvwprintw(board[3][12], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[3][12]);
                 break;
 
@@ -2310,7 +2310,7 @@ void printTokens()
             // Get coordinates
             positionToCoordinate(red[i], &x, &y);
             // Show the token
-            wprintw(board[x][y], tokenShown(i));
+            wprintw(board[x][y], "%c", tokenShown(i));
             // Show the colour of the token
             wbkgd(board[x][y], COLOR_PAIR(BOARD_RED));
             // Refersh the board
@@ -2327,22 +2327,22 @@ void printTokens()
             switch (tempHome[1])
             {
             case 0:
-                mvwprintw(board[11][11], 0, 0, tokenShown(i));
+                mvwprintw(board[11][11], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[11][11]);
                 break;
 
             case 1:
-                mvwprintw(board[11][12], 0, 0, tokenShown(i));
+                mvwprintw(board[11][12], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[11][12]);
                 break;
 
             case 2:
-                mvwprintw(board[12][11], 0, 0, tokenShown(i));
+                mvwprintw(board[12][11], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[12][11]);
                 break;
 
             case 3:
-                mvwprintw(board[12][12], 0, 0, tokenShown(i));
+                mvwprintw(board[12][12], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[12][12]);
                 break;
 
@@ -2357,7 +2357,7 @@ void printTokens()
             // Get coordinates
             positionToCoordinate(green[i], &x, &y);
             // Show the token
-            wprintw(board[x][y], tokenShown(i));
+            wprintw(board[x][y], "%c", tokenShown(i));
             // Show the colour of the token
             wbkgd(board[x][y], COLOR_PAIR(BOARD_GREEN));
             // Refersh the board
@@ -2374,22 +2374,22 @@ void printTokens()
             switch (tempHome[2])
             {
             case 0:
-                mvwprintw(board[11][2], 0, 0, tokenShown(i));
+                mvwprintw(board[11][2], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[11][2]);
                 break;
 
             case 1:
-                mvwprintw(board[11][3], 0, 0, tokenShown(i));
+                mvwprintw(board[11][3], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[11][3]);
                 break;
 
             case 2:
-                mvwprintw(board[12][2], 0, 0, tokenShown(i));
+                mvwprintw(board[12][2], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[12][2]);
                 break;
 
             case 3:
-                mvwprintw(board[12][3], 0, 0, tokenShown(i));
+                mvwprintw(board[12][3], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[12][3]);
                 break;
 
@@ -2404,7 +2404,7 @@ void printTokens()
             // Get coordinates
             positionToCoordinate(yellow[i], &x, &y);
             // Show the token
-            wprintw(board[x][y], tokenShown(i));
+            wprintw(board[x][y], "%c", tokenShown(i));
             // Show the colour of the token
             wbkgd(board[x][y], COLOR_PAIR(BOARD_YELLOW));
             // Refersh the board
@@ -2421,22 +2421,22 @@ void printTokens()
             switch (tempHome[3])
             {
             case 0:
-                mvwprintw(board[2][2], 0, 0, tokenShown(i));
+                mvwprintw(board[2][2], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[2][2]);
                 break;
 
             case 1:
-                mvwprintw(board[2][3], 0, 0, tokenShown(i));
+                mvwprintw(board[2][3], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[2][3]);
                 break;
 
             case 2:
-                mvwprintw(board[3][2], 0, 0, tokenShown(i));
+                mvwprintw(board[3][2], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[3][2]);
                 break;
 
             case 3:
-                mvwprintw(board[3][3], 0, 0, tokenShown(i));
+                mvwprintw(board[3][3], 0, 0, "%c", tokenShown(i));
                 wrefresh(board[3][3]);
                 break;
 
@@ -2451,7 +2451,7 @@ void printTokens()
             // Get coordinates
             positionToCoordinate(blue[i], &x, &y);
             // Show the token
-            wprintw(board[x][y], tokenShown(i));
+            wprintw(board[x][y], "%c", tokenShown(i));
             // Show the colour of the token
             wbkgd(board[x][y], COLOR_PAIR(BOARD_BLUE));
             // Refersh the board
