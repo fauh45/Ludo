@@ -2302,58 +2302,58 @@ void positionToCoordinate(Tokens token, int *x, int *y)
         // Search for the collumns
         switch (token.pos)
         {
-        case 40:
         case 39:
         case 38:
+        case 37:
             *y = 0;
             break;
 
-        case 41:
-        case 37:
+        case 40:
+        case 36:
             *y = 1;
             break;
 
-        case 42:
-        case 36:
+        case 41:
+        case 35:
             *y = 2;
             break;
 
-        case 43:
-        case 35:
+        case 42:
+        case 34:
             *y = 3;
             break;
 
-        case 44:
-        case 34:
+        case 43:
+        case 33:
             *y = 4;
             break;
 
-        case 45:
-        case 33:
+        case 44:
+        case 32:
             *y = 5;
             break;
 
-        case 51:
         case 50:
         case 49:
         case 48:
         case 47:
         case 46:
-        case 32:
+        case 45:
         case 31:
         case 30:
         case 29:
         case 28:
         case 27:
+        case 26:
             *y = 6;
             break;
 
-        case 52:
+        case 51:
         case 25:
             *y = 7;
             break;
 
-        case 53:
+        case 52:
         case 1:
         case 2:
         case 3:
