@@ -685,8 +685,8 @@ WINDOW *newWindow(int line, int collumns, int starty, int startx)
 
 void showBoard()
 {
-    int i;            // Rows of Board
-    int j;            // Collumn of Board
+    int i; // Rows of Board
+    int j; // Collumn of Board
 
     // Blue Corner
     for (i = 0; i <= 5; i++)
@@ -934,7 +934,7 @@ void clearBoard()
     int j;
 
     // Get every block of the board and clears it
-    for ( i = 0; i < 15; i++)
+    for (i = 0; i < 15; i++)
     {
         for (j = 0; j < 15; j++)
         {
@@ -942,7 +942,6 @@ void clearBoard()
             wrefresh(board[i][j]);
         }
     }
-    
 }
 
 void destroyBoard()
@@ -1543,8 +1542,7 @@ int RollADice()
 {
     srand(time(NULL));
 
-    // return rand() % 6 + 1;
-    return 6;
+    return rand() % 6 + 1;
 }
 
 Tokens getTokens(int i)
@@ -1676,7 +1674,6 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
         {
             outFromHomeBase(numOfToken);
         }
-        
     }
 
     // Add number of move
@@ -2810,7 +2807,7 @@ void aTurn()
     case 1:
         printToOptionBox("Red Turn", 1, 1);
         break;
-    
+
     case 2:
         printToOptionBox("Green Turn", 1, 1);
         break;
@@ -2834,15 +2831,13 @@ void aTurn()
     if (players[playerIndex[whosTurn - 1]].comp)
     {
         diceRoll = RollADice();
-        
-        
-        for (int i=0; i<4; i++)
+
+        for (int i = 0; i < 4; i++)
         {
             posmov[i] = possibleMove(diceRoll, temp[i].pos, temp[i].safe);
         }
-        
-        //passing the possible move to bot
 
+        //passing the possible move to bot
     }
     else
     {
@@ -2856,12 +2851,12 @@ void aTurn()
 
             getPossibleMove(posmov, temp, diceRoll);
 
-            for ( i = 0; i < 4; i++)
+            for (i = 0; i < 4; i++)
             {
                 if (posmov[i] == 's')
                     tempcount++;
             }
-            
+
             // If there's no tokens that can be moved no need for input
             if (tempcount < 4)
             {
@@ -2885,20 +2880,22 @@ void aTurn()
 
             // Redraw the tokens
             printTokens();
-            
-            if (diceRoll == 6)
+
+            if (diceRoll == 6 && numberOfSix < 3)
             {
                 numberOfSix++;
                 diceRoll = getDiceRoll();
 
-                printw("%d", diceRoll);
-                refresh();
+                // Get the tokens
+                for (int i = 0; i < 4; i++)
+                {
+                    temp[i] = getTokens(i);
+                }
             }
             else
             {
                 break;
             }
-            
         }
     }
 }
@@ -2921,4 +2918,3 @@ int getDiceRoll()
     getch();
     return roll;
 }
-
