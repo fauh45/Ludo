@@ -591,6 +591,16 @@ int getDiceRoll();
 */
 void pauseHandler(int signum);
 
+/*
+    Input :
+    @posmov[4] array of possible move that passed to bot
+    @diceNum the dice number that shown up
+    @temp the tokens of bot that takes the turn
+    Output : Number of token that bot want to move
+    Author : Marissa Nur Amalia
+*/
+int botJörgen(char posmov[], Tokens temp[]);
+
 int main()
 {
     int choice[3];
@@ -2847,12 +2857,67 @@ void aTurn()
     {
         diceRoll = RollADice();
 
-        for (int i = 0; i < 4; i++)
+        while (numberOfSix < 3)
         {
-            posmov[i] = possibleMove(diceRoll, temp[i].pos, temp[i].safe);
-        }
+            for (int i = 0; i < 4; i++)
+            {
+                posmov[i] = possibleMove(diceRoll, temp[i].pos, temp[i].safe);
+            }
+            
+            for (i = 0; i < 4; i++)
+            {
+                if (posmov[i] == 's')
+                    tempcount++;
+            }
+            
+            if (tempcount < 4)
+            {
+                switch (players[playerIndex[whosTurn - 1]].comptype)
+                {
+                    case 'j':
+                        numOfToken = botJörgen(posmov,temp);
+                        break;
+                        
+                    case 'h':
+                        //get number of token from hans bot
+                        break;
+                        
+                    case 'm':
+                        //get number of token from müller bot
+                        break;
+                        
+                    default:
+                        break;
+                }
+                
+                moveToken(diceRoll, temp[numOfToken], posmov[numOfToken], numOfToken);
+                
+                // Clear the board
+                clearBoard();
 
-        //passing the possible move to bot
+                // Redraw the board
+                showBoard();
+
+                // Redraw the tokens
+                printTokens();
+
+                if (diceRoll == 6 && numberOfSix < 3)
+                {
+                    numberOfSix++;
+                    diceRoll = getDiceRoll();
+
+                    // Get the tokens
+                    for (int i = 0; i < 4; i++)
+                    {
+                        temp[i] = getTokens(i);
+                    }
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
     }
     else
     {
@@ -3009,4 +3074,47 @@ void pauseHandler(int signum)
     wborder(pauseScreen, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
     wrefresh(pauseScreen);
     delwin(pauseScreen);
+}
+
+int botJörgen(char posmov[], Tokens temp[])
+{
+    //moving token out of home base
+    for (int i=0; i<4; i++)
+    {
+        if (posmov[i]=='o') {
+            return i;
+        }
+    }
+    
+    //moving the token in safe zone
+    int inSafeZone=0, numOfToken=-1;
+    
+    for (int i=0; i<4; i++) {
+        if (temp[i].safe)
+        {
+            if (inSafeZone<temp[i].pos)
+            {
+                inSafeZone = temp[i].pos;
+                numOfToken = i;
+            }
+        }
+    }
+    
+    if (numOfToken != -1)
+    {
+        return numOfToken;
+    }
+    
+    //moving the biggest relpos
+    int relPos=0;
+    
+    for (int i=0; i<4; i++)
+    {
+        if (relPos < temp[i].relpos) {
+            relPos = temp[i].relpos;
+            numOfToken = i;
+        }
+    }
+    
+    return numOfToken;
 }
