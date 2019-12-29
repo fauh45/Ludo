@@ -3,7 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
-// #include <stdbool.h>
+#include <signal.h>
 
 /* OS Detection to make sure screen clearing, sleep, and curses function works */
 #if defined(__linux__) || defined(unix)
@@ -582,6 +582,15 @@ void aTurn();
 */
 int getDiceRoll();
 
+/*
+    Initial State : User use the interrupt
+    Final State : Exit, Save game, or both
+    Input :
+    @signum the signal number from the program
+    Author : Muhammad Fauzan L.
+*/
+void pauseHandler(int signum);
+
 int main()
 {
     int choice[3];
@@ -615,6 +624,10 @@ int main()
             Play new game here
             While not gameover, showboard and option box, check who's turn, play
         */
+        // Pause handler using interupt signal from the user
+        signal(SIGINT, pauseHandler);
+
+        // Get user choice on how many and what kind of bots
         showNewGameMenu(choice);
         initPlayerData(choice);
 
@@ -637,6 +650,8 @@ int main()
             moveToNextTurn();
         }
 
+        // Remove the handler as it's not used anymore
+        signal(SIGINT, SIG_DFL);
         getch();
         /*
             End of game handling here
@@ -2917,4 +2932,81 @@ int getDiceRoll()
     wrefresh(options);
     getch();
     return roll;
+}
+
+void pauseHandler(int signum)
+{
+    WINDOW *pauseScreen; // Pause screen
+    int i, highlight = 0, position;
+
+    // Options for the user
+    char options[4][15] = {"Resume", "Save Game", "Save & Exit", "Exit"};
+    char item[9];
+    char ch;
+
+    // Create new window for the menu
+    pauseScreen = newWindow(10, 30, getMiddleX(stdscr, 30), 12);
+    box(pauseScreen, 0, 0);
+
+    // Enable keypad mode for key up and down
+    keypad(pauseScreen, true);
+
+    // Make sure what has been entered is not shown
+    noecho();
+
+    // Hide the cursor
+    curs_set(0);
+
+    // Loop until has been inputed
+    while (1)
+    {
+        // Show the options
+        for (i = 0; i < 4; i++)
+        {
+            position = getMiddleX(pauseScreen, strlen(options[i]));
+
+            // Show the highlighted options with highlights
+            if (i == highlight)
+                wattron(pauseScreen, A_REVERSE);
+
+            mvwprintw(pauseScreen, i + 1, position, options[i]);
+
+            if (i == highlight)
+                wattroff(pauseScreen, A_REVERSE);
+        }
+
+        // Get user input
+        ch = wgetch(pauseScreen);
+
+        if (ch == (char)KEY_UP)
+        {
+            highlight--;
+            highlight = (highlight < 0) ? 3 : highlight;
+        }
+        else if (ch == (char)KEY_DOWN)
+        {
+            highlight++;
+            highlight = (highlight > 3) ? 0 : highlight;
+        }
+        else if (ch == 10) // Somehow the usage of KEY_ENTER doesn't work, so char 10 is used instead
+        {
+            printw("%d", highlight);
+            refresh();
+
+            if (highlight == 3)
+            {
+                endwin();
+                exit(5);
+            }
+            
+            break;
+        }
+    }
+
+    // After user input clear out the border and window as
+    // it is not used anymore
+    werase(pauseScreen);
+    wborder(pauseScreen, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+    wrefresh(pauseScreen);
+    delwin(pauseScreen);
 }
