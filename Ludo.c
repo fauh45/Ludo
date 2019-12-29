@@ -151,6 +151,20 @@ WINDOW *newWindow(int line, int collumns, int starty, int startx);
 void showBoard();
 
 /*
+    Initial State : Board box are not initialized
+    Final State : Board box are initialized
+    Author : Muhammad Fauzan L.
+*/
+void initBoard();
+
+/*
+    Initial State : The board is not empty
+    Final State : Empty board
+    Author : Muhammad Fauzan L.
+*/
+void clearBoard();
+
+/*
    Initial State : Board is in the screen
    Final State : Board no longer in the screen
    Author : Muhammad Fauzan L.
@@ -600,12 +614,14 @@ int main()
         initPlayerData(choice);
 
         clear();
+        // Initialized the board and the option box
         showOptionBox();
+        initBoard();
 
-        // Redraw the board
+        // Draw the board
         showBoard();
 
-        // Redraw the tokens
+        // Draw the tokens
         printTokens();
 
         while (!isGameOver())
@@ -666,22 +682,6 @@ void showBoard()
 {
     int i;            // Rows of Board
     int j;            // Collumn of Board
-    int x = 1, y = 1; // Initial position of board, top left of board
-
-    // Create new window for each 14 * 14 board
-    // With the size each of the board, 2 rows and 4 collumns
-    // Starting from (1, 1)
-    for (i = 0; i < 15; i++)
-    {
-        for (j = 0; j < 15; j++)
-        {
-            board[i][j] = newWindow(2, 4, x, y);
-            x += 4;
-            refresh();
-        }
-        x = 1;
-        y += 2;
-    }
 
     // Blue Corner
     for (i = 0; i <= 5; i++)
@@ -899,6 +899,45 @@ void showBoard()
         wbkgd(board[i][7], COLOR_PAIR(BOARD_YELLOW));
         wrefresh(board[i][7]);
     }
+}
+
+void initBoard()
+{
+    int i;
+    int j;
+    int x = 1, y = 1; // Initial position of board, top left of board
+
+    // Create new window for each 14 * 14 board
+    // With the size each of the board, 2 rows and 4 collumns
+    // Starting from (1, 1)
+    for (i = 0; i < 15; i++)
+    {
+        for (j = 0; j < 15; j++)
+        {
+            board[i][j] = newWindow(2, 4, x, y);
+            x += 4;
+            refresh();
+        }
+        x = 1;
+        y += 2;
+    }
+}
+
+void clearBoard()
+{
+    int i;
+    int j;
+
+    // Get every block of the board and clears it
+    for ( i = 0; i < 15; i++)
+    {
+        for (j = 0; j < 15; j++)
+        {
+            werase(board[i][j]);
+            wrefresh(board[i][j]);
+        }
+    }
+    
 }
 
 void destroyBoard()
@@ -1542,6 +1581,8 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
             moveToSafeZone(numOfToken, diceNum);
             clearOptionBox();
             mvwprintw(options, 1, 1, "Token %c move %d step to safe zone", tokenShown(numOfToken), diceNum);
+            wrefresh(options);
+            WaitForSecond(1);
         }
         else
         {
@@ -1581,6 +1622,8 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 clearOptionBox();
                 moveForward(diceNum, numOfToken);
                 mvwprintw(options, 1, 1, "Token %c move %d step to board no-%d", tokenShown(numOfToken), diceNum, temp.pos + diceNum);
+                wrefresh(options);
+                WaitForSecond(1);
             }
         }
     }
@@ -1588,6 +1631,8 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
     {
         clearOptionBox();
         mvwprintw(options, 1, 1, "Token %c enter the board", tokenShown(numOfToken));
+        wrefresh(options);
+        WaitForSecond(1);
         //check if there is opponents with modul isThere opponents
         if ((opponents.col != temp.col) && (opponents.col != 'n'))
         {
@@ -1619,6 +1664,11 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 toHomeBase(numOfToken, whosTurn);
             }
         }
+        else
+        {
+            outFromHomeBase(numOfToken);
+        }
+        
     }
 
     // Add number of move
@@ -1697,7 +1747,7 @@ int getNumOfToken(char posmov[])
     numOfToken = tokenCharToInt(token);
 
     // Check the validity
-    while (!validateInputToken(numOfToken) || ((posmov[numOfToken - 1] == 's')))
+    while (!validateInputToken(numOfToken) || ((posmov[numOfToken] == 's')))
     {
         wmove(options, 2, 0);
         // Clear the line to show not valid
@@ -1710,7 +1760,6 @@ int getNumOfToken(char posmov[])
         wscanw(options, "%c", &token);
         numOfToken = tokenCharToInt(token);
     }
-    numOfToken -= 1;
 
     return numOfToken;
 }
@@ -2265,12 +2314,9 @@ void printTokens()
     char tempShown;  // Temporary place for the the shown string
 
     // Initialize the array
-    for (i = 0; i < 53; i++)
+    for (i = 0; i < 4; i++)
     {
-        if (i < 4)
-        {
-            tempHome[i] = 0;
-        }
+        tempHome[i] = 0;
     }
 
     // Red tokens
@@ -2746,7 +2792,30 @@ void aTurn()
     int diceRoll = 0;    // Temporary storage for diceroll
     int numberOfSix = 0; // Count the number of the six in the dice roll
     int numOfToken;      // Number of token that's going to be moved
+    int i;               // Looping
+    int tempcount;       // Counting the possibilities of stuck
     Tokens temp[4];      // Temporary token storage for the current player
+
+    clearOptionBox();
+    switch (whosTurn)
+    {
+    case 1:
+        printToOptionBox("Red Turn", 1, 1);
+        break;
+    
+    case 2:
+        printToOptionBox("Green Turn", 1, 1);
+        break;
+
+    case 3:
+        printToOptionBox("Blue Turn", 1, 1);
+        break;
+
+    case 4:
+        printToOptionBox("Yellow Turn", 1, 1);
+        break;
+    }
+    WaitForSecond(1);
 
     // Get the tokens
     for (int i = 0; i < 4; i++)
@@ -2771,17 +2840,37 @@ void aTurn()
     {
         // Human player
         diceRoll = getDiceRoll();
+        printw("%d", diceRoll);
+        refresh();
 
         while (numberOfSix < 3)
         {
 
             getPossibleMove(posmov, temp, diceRoll);
 
-            // Get number of token that want to be move
-            numOfToken = getNumOfToken(posmov);
+            for ( i = 0; i < 4; i++)
+            {
+                if (posmov[i] == 's')
+                    tempcount++;
+            }
+            
+            // If there's no tokens that can be moved no need for input
+            if (tempcount < 4)
+            {
+                // Get number of token that want to be move
+                numOfToken = getNumOfToken(posmov);
 
-            // Move the token
-            moveToken(diceRoll, temp[numOfToken], posmov[numOfToken], numOfToken);
+                // Move the token
+                moveToken(diceRoll, temp[numOfToken], posmov[numOfToken], numOfToken);
+            }
+            else
+            {
+                printToOptionBox("No possible move, press any key to continue...", 1, 1);
+                getch();
+            }
+
+            // Clear the board
+            clearBoard();
 
             // Redraw the board
             showBoard();
@@ -2793,6 +2882,9 @@ void aTurn()
             {
                 numberOfSix++;
                 diceRoll = getDiceRoll();
+
+                printw("%d", diceRoll);
+                refresh();
             }
             else
             {
@@ -2816,7 +2908,9 @@ int getDiceRoll()
     getch();
 
     roll = RollADice();
-    mvwprintw(options, 1, 1, "You got %d", roll);
+    mvwprintw(options, 1, 1, "You got %d press anything to continue", roll);
+    wrefresh(options);
+    getch();
     return roll;
 }
 
