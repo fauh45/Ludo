@@ -1549,7 +1549,7 @@ int RollADice()
 
 Tokens getTokens(int i)
 {
-    switch (playerIndex[whosTurn - 1])
+    switch (playerIndex[whosTurn - 1] + 1)
     {
     case 1:
         return red[i];
@@ -1810,7 +1810,7 @@ bool validateInputToken(int x)
 
 void moveForward(int diceNum, int numOfToken)
 {
-    switch (playerIndex[whosTurn - 1])
+    switch (playerIndex[whosTurn - 1] + 1)
     {
     case 1:
         red[numOfToken].pos += diceNum;
@@ -1851,7 +1851,7 @@ void moveForward(int diceNum, int numOfToken)
 
 void toHomeBase(int numOfToken, int index)
 {
-    switch (index)
+    switch (index + 1)
     {
     case 1:
         red[numOfToken].pos = 0;
@@ -1876,7 +1876,7 @@ void toHomeBase(int numOfToken, int index)
 
 void outFromHomeBase(int numOfToken)
 {
-    switch (playerIndex[whosTurn - 1])
+    switch (playerIndex[whosTurn - 1] + 1)
     {
     case 1:
         red[numOfToken].pos = 1;
@@ -1901,7 +1901,7 @@ void outFromHomeBase(int numOfToken)
 
 void moveToSafeZone(int numOfToken, int diceNum)
 {
-    switch (playerIndex[whosTurn - 1])
+    switch (playerIndex[whosTurn - 1] + 1)
     {
     case 1:
         red[numOfToken].pos = (red[numOfToken].pos + diceNum) - 52;
@@ -2805,7 +2805,7 @@ void aTurn()
     Tokens temp[4];      // Temporary token storage for the current player
 
     clearOptionBox();
-    switch (playerIndex[whosTurn - 1])
+    switch (playerIndex[whosTurn - 1] + 1)
     {
     case 1:
         printToOptionBox("Red Turn", 1, 1);
