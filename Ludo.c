@@ -599,7 +599,7 @@ void pauseHandler(int signum);
     Output : Number of token that bot want to move
     Author : Marissa Nur Amalia
 */
-int botJörgen(char posmov[], Tokens temp[]);
+int botJorgen(char posmov[], Tokens temp[]);
 
 /*
     Initial State : User in-game
@@ -2927,7 +2927,7 @@ void aTurn()
                 switch (players[playerIndex[whosTurn - 1]].comptype)
                 {
                     case 'j':
-                        numOfToken = botJörgen(posmov,temp);
+                        numOfToken = botJorgen(posmov,temp);
                         break;
                         
                     case 'h':
@@ -3139,7 +3139,7 @@ void pauseHandler(int signum)
     delwin(pauseScreen);
 }
 
-int botJörgen(char posmov[], Tokens temp[])
+int botJorgen(char posmov[], Tokens temp[])
 {
     //moving token out of home base
     for (int i=0; i<4; i++)
