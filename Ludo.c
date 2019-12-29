@@ -3150,15 +3150,20 @@ int botJorgen(char posmov[], Tokens temp[])
     }
     
     //moving the token in safe zone
+    
     int inSafeZone=0, numOfToken=-1;
     
-    for (int i=0; i<4; i++) {
-        if (temp[i].safe)
+    for (int i=0; i<4; i++)
+    {
+        if (posmov[i]=='m')
         {
-            if (inSafeZone<temp[i].pos)
+            if (temp[i].safe)
             {
-                inSafeZone = temp[i].pos;
-                numOfToken = i;
+                if (inSafeZone<temp[i].pos)
+                {
+                    inSafeZone = temp[i].pos;
+                    numOfToken = i;
+                }
             }
         }
     }
@@ -3173,9 +3178,13 @@ int botJorgen(char posmov[], Tokens temp[])
     
     for (int i=0; i<4; i++)
     {
-        if (relPos < temp[i].relpos) {
-            relPos = temp[i].relpos;
-            numOfToken = i;
+        if (posmov[i]=='m')
+        {
+            if (relPos < temp[i].relpos)
+            {
+                relPos = temp[i].relpos;
+                numOfToken = i;
+            }
         }
     }
     
