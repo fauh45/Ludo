@@ -599,7 +599,7 @@ void pauseHandler(int signum);
     Output : Number of token that bot want to move
     Author : Marissa Nur Amalia
 */
-int botJörgen(char posmov[], Tokens temp[]);
+int botJorgen(char posmov[], Tokens temp[]);
 
 /*
     Initial State : User in-game
@@ -695,10 +695,10 @@ int main()
             getch();
             exit(6);
         }
-        
+
         // Load game save
         getGameState();
-        
+
         // Pause handler using interupt signal from the user
         signal(SIGINT, pauseHandler);
 
@@ -1572,7 +1572,7 @@ Tokens isThereOpponents(Tokens token, int index)
 
 bool isTransitionToSafezone(Tokens token, int diceroll)
 {
-    return (token.relpos + diceroll) > 52;
+    return (token.relpos + diceroll) > 51;
 }
 
 //int distanceBetween(Tokens token1, Tokens token2)
@@ -1687,16 +1687,32 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     opChoice = suitRandom();
                     // Check who won
                     whosWin = suitCheck(choice, opChoice);
+
+                    if (whosWin == 0)
+                    {
+                        clearOptionBox();
+
+                        printToOptionBox("A draw!", 1, 1);
+                        WaitForSecond(1);
+                    }
+
                 } while (whosWin == 0);
 
                 //if win then token moveForward opponents moveToHome and vice versa
                 if (whosWin == 1) //if user win
                 {
+                    clearOptionBox();
+                    printToOptionBox("You've won!", 1, 1);
+                    WaitForSecond(1);
                     moveForward(diceNum, numOfToken);
                     toHomeBase(numOfToken, op + 1);
                 }
                 else
                 {
+                    clearOptionBox();
+                    printToOptionBox("You've lost!", 1, 1);
+                    WaitForSecond(1);
+
                     toHomeBase(numOfToken, playerIndex[whosTurn - 1]);
                 }
             }
@@ -1978,7 +1994,7 @@ void moveToSafeZone(int numOfToken, int diceNum)
     switch (playerIndex[whosTurn - 1] + 1)
     {
     case 1:
-        red[numOfToken].pos = (red[numOfToken].pos + diceNum) - 52;
+        red[numOfToken].pos = (red[numOfToken].pos + diceNum) - 51;
         red[numOfToken].relpos = red[numOfToken].pos;
         red[numOfToken].safe = true;
         break;
@@ -1993,7 +2009,7 @@ void moveToSafeZone(int numOfToken, int diceNum)
         yellow[numOfToken].safe = true;
         break;
     case 4:
-        blue[numOfToken].pos = (blue[numOfToken].pos + diceNum) - 39;
+        blue[numOfToken].pos = (blue[numOfToken].pos + diceNum) - 38;
         blue[numOfToken].relpos = blue[numOfToken].pos;
         blue[numOfToken].safe = true;
         break;
@@ -2185,43 +2201,43 @@ void positionToCoordinate(Tokens token, int *x, int *y)
         // Search for the position in the rows
         switch (token.pos)
         {
+        case 50:
         case 51:
         case 52:
-        case 53:
             *x = 0;
             break;
 
-        case 50:
+        case 49:
         case 1:
             *x = 1;
             break;
 
-        case 49:
+        case 48:
         case 2:
             *x = 2;
             break;
 
-        case 48:
+        case 47:
         case 3:
             *x = 3;
             break;
 
-        case 47:
+        case 46:
         case 4:
             *x = 4;
             break;
 
-        case 46:
+        case 45:
         case 5:
             *x = 5;
             break;
 
+        case 39:
         case 40:
         case 41:
         case 42:
         case 43:
         case 44:
-        case 45:
         case 6:
         case 7:
         case 8:
@@ -2231,17 +2247,17 @@ void positionToCoordinate(Tokens token, int *x, int *y)
             *x = 6;
             break;
 
-        case 39:
+        case 38:
         case 12:
             *x = 7;
             break;
 
-        case 38:
         case 37:
         case 36:
         case 35:
         case 34:
         case 33:
+        case 32:
         case 18:
         case 17:
         case 16:
@@ -2251,32 +2267,32 @@ void positionToCoordinate(Tokens token, int *x, int *y)
             *x = 8;
             break;
 
-        case 32:
+        case 31:
         case 19:
             *x = 9;
             break;
 
-        case 31:
+        case 30:
         case 20:
             *x = 10;
             break;
 
-        case 30:
+        case 29:
         case 21:
             *x = 11;
             break;
 
-        case 29:
+        case 28:
         case 22:
             *x = 12;
             break;
 
-        case 28:
+        case 27:
         case 23:
             *x = 13;
             break;
 
-        case 27:
+        case 26:
         case 25:
         case 24:
             *x = 14;
@@ -2915,35 +2931,35 @@ void aTurn()
             {
                 posmov[i] = possibleMove(diceRoll, temp[i].pos, temp[i].safe);
             }
-            
+
             for (i = 0; i < 4; i++)
             {
                 if (posmov[i] == 's')
                     tempcount++;
             }
-            
+
             if (tempcount < 4)
             {
                 switch (players[playerIndex[whosTurn - 1]].comptype)
                 {
-                    case 'j':
-                        numOfToken = botJörgen(posmov,temp);
-                        break;
-                        
-                    case 'h':
-                        //get number of token from hans bot
-                        break;
-                        
-                    case 'm':
-                        //get number of token from müller bot
-                        break;
-                        
-                    default:
-                        break;
+                case 'j':
+                    numOfToken = botJorgen(posmov, temp);
+                    break;
+
+                case 'h':
+                    //get number of token from hans bot
+                    break;
+
+                case 'm':
+                    //get number of token from müller bot
+                    break;
+
+                default:
+                    break;
                 }
-                
+
                 moveToken(diceRoll, temp[numOfToken], posmov[numOfToken], numOfToken);
-                
+
                 // Clear the board
                 clearBoard();
 
@@ -2953,16 +2969,20 @@ void aTurn()
                 // Redraw the tokens
                 printTokens();
 
+                // Get the tokens
+                for (int i = 0; i < 4; i++)
+                {
+                    temp[i] = getTokens(i);
+                }
+
                 if (diceRoll == 6 && numberOfSix < 3)
                 {
                     numberOfSix++;
-                    diceRoll = getDiceRoll();
-
-                    // Get the tokens
-                    for (int i = 0; i < 4; i++)
-                    {
-                        temp[i] = getTokens(i);
-                    }
+                    diceRoll = RollADice();
+                }
+                else
+                {
+                    break;
                 }
             }
             else
@@ -3013,16 +3033,16 @@ void aTurn()
             // Redraw the tokens
             printTokens();
 
+            // Get the tokens
+            for (int i = 0; i < 4; i++)
+            {
+                temp[i] = getTokens(i);
+            }
+
             if (diceRoll == 6 && numberOfSix < 3)
             {
                 numberOfSix++;
                 diceRoll = getDiceRoll();
-
-                // Get the tokens
-                for (int i = 0; i < 4; i++)
-                {
-                    temp[i] = getTokens(i);
-                }
             }
             else
             {
@@ -3139,46 +3159,49 @@ void pauseHandler(int signum)
     delwin(pauseScreen);
 }
 
-int botJörgen(char posmov[], Tokens temp[])
+int botJorgen(char posmov[], Tokens temp[])
 {
     //moving token out of home base
-    for (int i=0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
-        if (posmov[i]=='o') {
+        if (posmov[i] == 'o')
+        {
             return i;
         }
     }
-    
+
     //moving the token in safe zone
-    int inSafeZone=0, numOfToken=-1;
-    
-    for (int i=0; i<4; i++) {
+    int inSafeZone = 0, numOfToken = -1;
+
+    for (int i = 0; i < 4; i++)
+    {
         if (temp[i].safe)
         {
-            if (inSafeZone<temp[i].pos)
+            if (inSafeZone < temp[i].pos)
             {
                 inSafeZone = temp[i].pos;
                 numOfToken = i;
             }
         }
     }
-    
+
     if (numOfToken != -1)
     {
         return numOfToken;
     }
-    
+
     //moving the biggest relpos
-    int relPos=0;
-    
-    for (int i=0; i<4; i++)
+    int relPos = 0;
+
+    for (int i = 0; i < 4; i++)
     {
-        if (relPos < temp[i].relpos) {
+        if (relPos < temp[i].relpos)
+        {
             relPos = temp[i].relpos;
             numOfToken = i;
         }
     }
-    
+
     return numOfToken;
 }
 
@@ -3289,4 +3312,3 @@ void getGameState()
     // Close
     fclose(saveGame);
 }
-
