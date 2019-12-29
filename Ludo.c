@@ -2813,11 +2813,11 @@ void aTurn()
         break;
 
     case 3:
-        printToOptionBox("Blue Turn", 1, 1);
+        printToOptionBox("Yellow Turn", 1, 1);
         break;
 
     case 4:
-        printToOptionBox("Yellow Turn", 1, 1);
+        printToOptionBox("Blue Turn", 1, 1);
         break;
     }
     WaitForSecond(1);
