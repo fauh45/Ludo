@@ -80,6 +80,11 @@ WINDOW *options;       // The box mmenu below of the board for the player to cho
 Player players[4]; // List of players
 
 /*
+    Array containing the player indexes in the player array
+*/
+int playerIndex[4];
+
+/*
     Token arrays for each colours
 
     char col value per colour :
@@ -1448,10 +1453,12 @@ void initPlayerData(int botIndexes[3])
         }
     }
     initHumanPlayerData(randTemp[0]);
+    playerIndex[0] = randTemp[0];
 
     for (i = 0, j = 1; i < numberOfBots && j < 4; i++, j++)
     {
         initBotPlayerData(botIndexes[i], randTemp[j]);
+        playerIndex[j] = randTemp[j];
     }
 }
 
@@ -1536,7 +1543,8 @@ int RollADice()
 {
     srand(time(NULL));
 
-    return rand() % 6 + 1;
+    // return rand() % 6 + 1;
+    return 6;
 }
 
 Tokens getTokens(int i)
@@ -2823,7 +2831,7 @@ void aTurn()
         temp[i] = getTokens(i);
     }
 
-    if (players[whosTurn - 1].comp)
+    if (players[playerIndex[whosTurn - 1]].comp)
     {
         diceRoll = RollADice();
         
