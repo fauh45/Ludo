@@ -601,6 +601,20 @@ void pauseHandler(int signum);
 */
 int botJörgen(char posmov[], Tokens temp[]);
 
+/*
+    Initial State : User in-game
+    Final State : The state of the game are saved into file
+    Author : Muhammad Fauzan L.
+*/
+void saveGamestate();
+
+/*
+    Initial State : Game data are empty and user choose to resume
+    Final State : The game data are the same as in the file
+    Author : Muhammad Fauzan L.
+*/
+void getGameState();
+
 int main()
 {
     int choice[3];
@@ -634,14 +648,14 @@ int main()
             Play new game here
             While not gameover, showboard and option box, check who's turn, play
         */
-        // Pause handler using interupt signal from the user
-        signal(SIGINT, pauseHandler);
-
         // Get user choice on how many and what kind of bots
         showNewGameMenu(choice);
         initPlayerData(choice);
 
         clear();
+        // Pause handler using interupt signal from the user
+        signal(SIGINT, pauseHandler);
+
         // Initialized the board and the option box
         showOptionBox();
         initBoard();
@@ -673,6 +687,44 @@ int main()
         /*
             Play resumed game here
             Check if file exist, check if file empty, load save game into variable, play as usual
+        */
+        clear();
+        if (!isFileExist("currentState.savegame"))
+        {
+            printw("File don't exist, press anything to exit...");
+            getch();
+            exit(6);
+        }
+        
+        // Load game save
+        getGameState();
+        
+        // Pause handler using interupt signal from the user
+        signal(SIGINT, pauseHandler);
+
+        // Initialized the board and the option box
+        showOptionBox();
+        initBoard();
+
+        // Draw the board
+        showBoard();
+
+        // Draw the tokens
+        printTokens();
+
+        while (!isGameOver())
+        {
+            // Start the turn
+            aTurn();
+            // Move to the next
+            moveToNextTurn();
+        }
+
+        // Remove the handler
+        signal(SIGINT, SIG_DFL);
+        getch();
+        /*
+            End of Game handling here
         */
         break;
 
@@ -2640,7 +2692,7 @@ bool isUserWin()
 {
     for (int i = 0; i < numberOfBots + 1; i++)
     {
-        if (!players[i].comp)
+        if (!players[playerIndex[i]].comp)
         {
             if (isItWin(i))
             {
@@ -3055,16 +3107,27 @@ void pauseHandler(int signum)
         }
         else if (ch == 10) // Somehow the usage of KEY_ENTER doesn't work, so char 10 is used instead
         {
-            printw("%d", highlight);
-            refresh();
+            if (highlight == 0)
+            {
+                break;
+            }
+            else if (highlight == 1)
+            {
+                saveGamestate();
+                break;
+            }
+            else if (highlight == 2)
+            {
+                saveGamestate();
 
-            if (highlight == 3)
+                endwin();
+                exit(5);
+            }
+            else
             {
                 endwin();
                 exit(5);
             }
-            
-            break;
         }
     }
 
@@ -3118,3 +3181,112 @@ int botJörgen(char posmov[], Tokens temp[])
     
     return numOfToken;
 }
+
+void saveGamestate()
+{
+    /*
+        Save all the game data present at the current call of the function
+        
+        The game state will be saved at currentState.savegame
+
+        The file structure will be like this :
+        no  content
+        1   Player data
+        2   Player index
+        3   Red Token
+        4   Green Token
+        5   Yelow Token
+        6   Blue Token
+        7   whosTurn
+        8   count
+    */
+    FILE *saveGame; // File for saving gamestate
+    int i;          // Looping
+
+    // Open the file, rewrites anything in there
+    saveGame = fopen("currentState.savegame", "wb");
+
+    if (saveGame)
+    {
+        // Save the player data
+        fwrite(players, sizeof(Player), 4, saveGame);
+
+        // Save the player index data
+        fwrite(playerIndex, sizeof(int), 4, saveGame);
+
+        // Save the red token data
+        fwrite(red, sizeof(Tokens), 4, saveGame);
+
+        // Save the green token data
+        fwrite(green, sizeof(Tokens), 4, saveGame);
+
+        // Save the blue token data
+        fwrite(blue, sizeof(Tokens), 4, saveGame);
+
+        // Save the yellow token data
+        fwrite(yellow, sizeof(Tokens), 4, saveGame);
+
+        // Save the current turn
+        fwrite(&whosTurn, sizeof(int), 1, saveGame);
+
+        // Save the count as it's crucial part of the playgame
+        fwrite(&count, sizeof(int), 1, saveGame);
+    }
+    else
+    {
+        clear();
+        printw("Save file cannot be openned, press anything to exit...");
+        getch();
+        exit(6);
+    }
+
+    // Close
+    fclose(saveGame);
+}
+
+void getGameState()
+{
+    FILE *saveGame; // File for saving gamestate
+    int i;          // Looping
+
+    // Open the file, read it as a binary file
+    saveGame = fopen("currentState.savegame", "rb");
+
+    if (saveGame)
+    {
+        // Get the player data
+        fread(players, sizeof(Player), 4, saveGame);
+
+        // Get the player index data
+        fread(playerIndex, sizeof(int), 4, saveGame);
+
+        // Get the red token data
+        fread(red, sizeof(Tokens), 4, saveGame);
+
+        // Get the green token data
+        fread(green, sizeof(Tokens), 4, saveGame);
+
+        // Get the blue token data
+        fread(blue, sizeof(Tokens), 4, saveGame);
+
+        // Get the yellow token data
+        fread(yellow, sizeof(Tokens), 4, saveGame);
+
+        // Get the current turn
+        fread(&whosTurn, sizeof(int), 1, saveGame);
+
+        // Get the count as it's crucial part of the playgame
+        fread(&count, sizeof(int), 1, saveGame);
+    }
+    else
+    {
+        clear();
+        printw("Save file cannot be openned, press anything to exit...");
+        getch();
+        exit(6);
+    }
+
+    // Close
+    fclose(saveGame);
+}
+
