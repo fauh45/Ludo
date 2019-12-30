@@ -591,12 +591,21 @@ void pauseHandler(int signum);
 /*
     Input :
     @posmov[4] array of possible move that passed to bot
-    @diceNum the dice number that shown up
     @temp the tokens of bot that takes the turn
     Output : Number of token that bot want to move
     Author : Marissa Nur Amalia
 */
 int botJorgen(char posmov[], Tokens temp[]);
+
+/*
+    Input :
+    @posmov[4] array of possible move that passed to bot
+    @diceNum the dice number that shown up
+    @temp the tokens of bot that takes the turn
+    Output : Number of token that bot want to move
+    Author : Marissa Nur Amalia
+*/
+int botHans(char posmov[], Tokens temp[], int diceNum);
 
 /*
     Initial State : User in-game
@@ -611,6 +620,15 @@ void saveGamestate();
     Author : Muhammad Fauzan L.
 */
 void getGameState();
+
+/*
+ Input :
+ @token the array of bot's token that want to checked
+ @index the board number that want to checked
+ Output : Is bot has opponents near the tokens
+ Author : Marissa Nur Amalia
+*/
+bool isBotHasOpponents(Tokens token, int index);
 
 int main()
 {
@@ -3100,7 +3118,7 @@ void aTurn()
                     break;
 
                 case 'h':
-                    //get number of token from hans bot
+                    numOfToken = botHans(posmov, temp, diceRoll);
                     break;
 
                 case 'm':
@@ -3472,4 +3490,145 @@ void getGameState()
 
     // Close
     fclose(saveGame);
+}
+
+int botHans(char posmov[], Tokens temp[], int diceNum)
+{
+    //moving the token that near opponents
+    for (int i=0; i<4; i++)
+    {
+        if (posmov[i]=='o')
+        {
+            switch (playerIndex[whosTurn - 1] + 1)
+            {
+            case 1:
+                if (isBotHasOpponents(temp[i], 1))
+                {
+                    return i;
+                }
+                break;
+
+            case 2:
+                if (isBotHasOpponents(temp[i], 14))
+                {
+                    return i;
+                }
+                break;
+
+            case 3:
+                if (isBotHasOpponents(temp[i], 27))
+                {
+                    return i;
+                }
+            case 4:
+                if (isBotHasOpponents(temp[i], 51))
+                {
+                    return i;
+                }
+                break;
+
+            default:
+                break;
+            
+        }
+    
+        else if (posmov[i] == 'm')
+        {
+            if (isBotHasOpponents(temp[i], temp.pos+diceNum))
+            {
+                return i;
+            }
+        }
+     }
+  }
+        
+    //moving token that can out from base
+    for (int i=0; i<4; i++)
+    {
+        if (posmov[i]=='o')
+        {
+            return i;
+        }
+    }
+        
+    //moving the token in safe zone
+        
+    int inSafeZone = 0, numOfToken = -1;
+    
+    for (int i = 0; i < 4; i++)
+    {
+        if (posmov[i] == 'm')
+        {
+            if (temp[i].safe)
+            {
+                if (inSafeZone < temp[i].pos)
+                {
+                    inSafeZone = temp[i].pos;
+                    numOfToken = i;
+                }
+            }
+        }
+    }
+        
+    if (numOfToken != -1)
+    {
+        return numOfToken;
+    }
+        
+    //moving the biggest relpos
+    int relPos = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (posmov[i] == 'm')
+        {
+            if (relPos < temp[i].relpos)
+            {
+                relPos = temp[i].relpos;
+                numOfToken = i;
+            }
+        }
+    }
+
+    return numOfToken;
+}
+
+bool isBotHasOpponents(Tokens token, int index)
+{
+    int i, j = 0;
+
+    // Loops every array of token colour
+    for (i = 0; i < 4; i++)
+    {
+        // Oppponents is there only if they're not the same colour, have the same positions
+        // and not in the safezone
+        for (j = 0; j < 6; i++)
+        {
+            int numOfBox = index + j;
+            
+            if(numOfBox > 52)
+            {
+                numOfBox -= 52;
+            }
+            
+            if (red[i].col != token.col && red[i].pos == numOfBox && !red[i].safe)
+            {
+                return true;
+            }
+            else if (green[i].col != token.col && green[i].pos == numOfBox && !green[i].safe)
+            {
+                return true;
+            }
+            else if (blue[i].col != token.col && blue[i].pos == numOfBox && !blue[i].safe)
+            {
+                return true;
+            }
+            else if (yellow[i].col != token.col && yellow[i].pos == numOfBox && !yellow[i].safe)
+            {
+                return true;
+            }
+        }
+    }
+        
+    // If there's no opponent
+    return false;
 }
