@@ -257,13 +257,13 @@ void initPlayerData(int botIndexes[3]);
 
 /*
     Input : 
-    @token the current token
+    @token array of the current token
     @index the place where the current tokens wants to move
     Output : token data of opponents if there's opponents on the index,
              otherwise token data with colour 'n'
     Author : Muhammad Fauzan L.
 */
-Tokens isThereOpponents(Tokens token, int index);
+void isThereOpponents(Tokens token[], int index);
 
 /*
     Input :
@@ -1548,9 +1548,9 @@ void initPlayerData(int botIndexes[3])
     }
 }
 
-Tokens isThereOpponents(Tokens token, int index)
+void isThereOpponents(Tokens token[], int index)
 {
-    int i;
+    int i, j=0;
 
     // Loops every array of token colour
     for (i = 0; i < 4; i++)
@@ -1559,25 +1559,31 @@ Tokens isThereOpponents(Tokens token, int index)
         // and not in the safezone
         if (red[i].col != token.col && red[i].pos == index && !red[i].safe)
         {
-            return red[i];
+            token[j] = red[i];
+            j++;
         }
         else if (green[i].col != token.col && green[i].pos == index && !green[i].safe)
         {
-            return green[i];
+            token[j] = green[i];
+            j++;
         }
         else if (blue[i].col != token.col && blue[i].pos == index && !blue[i].safe)
         {
-            return blue[i];
+            token[j] = blue[i];
+            j++;
         }
         else if (yellow[i].col != token.col && yellow[i].pos == index && !yellow[i].safe)
         {
-            return yellow[i];
+            token[j] = yellow[i];
+            j++;
         }
     }
 
     // If none were found return with colour n (null)
-    token.col = 'n';
-    return token;
+    if (j==0)
+    {
+        token[0].col = 'n';
+    }
 }
 
 bool isTransitionToSafezone(Tokens token, int diceroll)
@@ -1662,9 +1668,9 @@ void moveToNextTurn()
 
 void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
 {
-    Tokens opponents;
-
-    opponents = isThereOpponents(temp, temp.pos + diceNum);
+    Tokens opponents[4]; //to storage the opponents
+    
+    isThereOpponents(opponents,temp.pos + diceNum);
 
     if (posmov == 'm')
     {
@@ -1680,47 +1686,83 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
         else
         {
             //check if there is opponents with modul isThere opponents
-            if ((opponents.col != temp.col) && (opponents.col != 'n'))
+            if ((opponents[0].col != temp.col) && (opponents[0].col != 'n'))
             {
                 //initialize the index of opponent
-                int op = whosOpponents(opponents.col);
-                int choice, opChoice; //choice is choosen by user and opChoice is random
+                int op = whosOpponents(opponents[0].col);
+                int choice, opChoice; //choice is choosen by player whose take turn and opChoice is choosen by opponents
                 int whosWin;          // Storage to show who won
 
                 do
                 {
                     // Clear out the option box
                     clearOptionBox();
-                    // Get user input on suit menu
-                    suitMenu(&choice);
-                    // Do random suit for the bot
-                    opChoice = suitRandom();
+                    
+                    if (!players[playerIndex[whosTurn - 1] + 1].comp) && players[op].comp ) //if whos take turn is user and opponents is bot
+                    {
+                        // Get user input on suit menu
+                        suitMenu(&choice);
+                        // Do random suit for the bot
+                        opChoice = suitRandom();
+                    }
+                    else if(players[playerIndex[whosTurn - 1] + 1].comp && !(players[op].comp)) //if whos take turn is bot and opponents is user
+                    {
+                        choice = suitRandom();
+                        suitMenu(&opChoice);
+                    }
+                    else if(players[playerIndex[whosTurn - 1] + 1].comp && players[op].comp) //if both of whos take turn and opponents is bot
+                    {
+                        choice = suitRandom();
+                        opChoice = suitRandom();
+                    }
+                    
                     // Check who won
                     whosWin = suitCheck(choice, opChoice);
 
                     if (whosWin == 0)
                     {
                         clearOptionBox();
-
-                        printToOptionBox("A draw!", 1, 1);
+                        if ((!players[playerIndex[whosTurn - 1] + 1].comp) || !(players[op].comp))
+                        {
+                            printToOptionBox("A draw!", 1, 1);
+                        }
                         WaitForSecond(1);
                     }
 
                 } while (whosWin == 0);
 
                 //if win then token moveForward opponents moveToHome and vice versa
-                if (whosWin == 1) //if user win
+                
+                if (whosWin == 1) //if the player that take turn win
                 {
                     clearOptionBox();
-                    printToOptionBox("You've won!", 1, 1);
+                    if (!players[playerIndex[whosTurn - 1] + 1].comp) && players[op].comp)
+                    {
+                        printToOptionBox("You've won!", 1, 1);
+                    }
+                    else if(players[playerIndex[whosTurn - 1] + 1].comp && !(players[op].comp))
+                    {
+                        printToOptionBox("You've lost!", 1, 1);
+                    }
+                    
                     WaitForSecond(1);
                     moveForward(diceNum, numOfToken);
-                    toHomeBase(opponents.ind, op + 1);
+                    for (int i=0; i<4; i++)
+                    {
+                      toHomeBase(opponents[i].ind, op + 1);
+                    }
                 }
                 else
                 {
                     clearOptionBox();
-                    printToOptionBox("You've lost!", 1, 1);
+                    if (!players[playerIndex[whosTurn - 1] + 1].comp) && players[op].comp)
+                    {
+                        printToOptionBox("You've lost!", 1, 1);
+                    }
+                    else if(players[playerIndex[whosTurn - 1] + 1].comp && !(players[op].comp))
+                    {
+                        printToOptionBox("You've won!", 1, 1);
+                    }
                     WaitForSecond(1);
 
                     toHomeBase(numOfToken, playerIndex[whosTurn - 1] + 1);
