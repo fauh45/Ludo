@@ -666,14 +666,24 @@ int main()
         // Draw the tokens
         printTokens();
 
-        while (!isGameOver())
+        while (1)
         {
             // Start the turn
             aTurn();
             // Move to the next
             moveToNextTurn();
+            // Check if gameover
+            if (isGameOver())
+            {
+                break;
+            }
         }
 
+        destroyBoard();
+        destroyOptionBox();
+
+        printw("Done");
+        refresh();
         // Remove the handler as it's not used anymore
         signal(SIGINT, SIG_DFL);
         getch();
