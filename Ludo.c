@@ -1713,7 +1713,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     printToOptionBox("You've lost!", 1, 1);
                     WaitForSecond(1);
 
-                    toHomeBase(numOfToken, playerIndex[whosTurn - 1]);
+                    toHomeBase(opponents.ind, playerIndex[whosTurn - 1] + 1);
                 }
             }
             else
@@ -1728,10 +1728,33 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
     }
     else if (posmov == 'o')
     {
+        switch (playerIndex[whosTurn - 1] + 1)
+        {
+        case 1:
+            opponents = isThereOpponents(temp, 1);
+            break;
+
+        case 2:
+            opponents = isThereOpponents(temp, 14);
+            break;
+
+        case 3:
+            opponents = isThereOpponents(temp, 27);
+            break;
+
+        case 4:
+            opponents = isThereOpponents(temp, 40);
+            break;
+
+        default:
+            break;
+        }
+
         clearOptionBox();
         mvwprintw(options, 1, 1, "Token %c enter the board", tokenShown(numOfToken));
         wrefresh(options);
         WaitForSecond(1);
+
         //check if there is opponents with modul isThere opponents
         if ((opponents.col != temp.col) && (opponents.col != 'n'))
         {
@@ -1750,16 +1773,32 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 opChoice = suitRandom();
                 // Check who won
                 whosWin = suitCheck(choice, opChoice);
+
+                if (whosWin == 0)
+                {
+                    clearOptionBox();
+
+                    printToOptionBox("A draw!", 1, 1);
+                    WaitForSecond(1);
+                }
+
             } while (whosWin == 0);
 
             //if win then token moveForward opponents moveToHome and vice versa
             if (whosWin == 1) //if user win
             {
+                clearOptionBox();
+                printToOptionBox("You've won!", 1, 1);
+                WaitForSecond(1);
                 moveForward(diceNum, numOfToken);
-                toHomeBase(numOfToken, op + 1);
+                toHomeBase(opponents.ind, op + 1);
             }
             else
             {
+                clearOptionBox();
+                printToOptionBox("You've lost!", 1, 1);
+                WaitForSecond(1);
+
                 toHomeBase(numOfToken, playerIndex[whosTurn - 1]);
             }
         }
@@ -1941,7 +1980,7 @@ void moveForward(int diceNum, int numOfToken)
 
 void toHomeBase(int numOfToken, int index)
 {
-    switch (index + 1)
+    switch (index)
     {
     case 1:
         red[numOfToken].pos = 0;
@@ -1977,11 +2016,11 @@ void outFromHomeBase(int numOfToken)
         green[numOfToken].relpos = 1;
         break;
     case 3:
-        yellow[numOfToken].pos = 28;
+        yellow[numOfToken].pos = 27;
         yellow[numOfToken].relpos = 1;
         break;
     case 4:
-        blue[numOfToken].pos = 41;
+        blue[numOfToken].pos = 40;
         blue[numOfToken].relpos = 1;
         break;
     default:
@@ -2891,7 +2930,7 @@ void aTurn()
     int numberOfSix = 0; // Count the number of the six in the dice roll
     int numOfToken;      // Number of token that's going to be moved
     int i;               // Looping
-    int tempcount;       // Counting the possibilities of stuck
+    int tempcount = 0;   // Counting the possibilities of stuck
     Tokens temp[4];      // Temporary token storage for the current player
 
     clearOptionBox();
@@ -2924,9 +2963,19 @@ void aTurn()
     if (players[playerIndex[whosTurn - 1]].comp)
     {
         diceRoll = RollADice();
+        printw("%d", diceRoll);
+        refresh();
 
         while (numberOfSix < 3)
         {
+            tempcount = 0;
+
+            // Get the tokens
+            for (int i = 0; i < 4; i++)
+            {
+                temp[i] = getTokens(i);
+            }
+
             for (int i = 0; i < 4; i++)
             {
                 posmov[i] = possibleMove(diceRoll, temp[i].pos, temp[i].safe);
@@ -2969,16 +3018,12 @@ void aTurn()
                 // Redraw the tokens
                 printTokens();
 
-                // Get the tokens
-                for (int i = 0; i < 4; i++)
-                {
-                    temp[i] = getTokens(i);
-                }
-
                 if (diceRoll == 6 && numberOfSix < 3)
                 {
                     numberOfSix++;
                     diceRoll = RollADice();
+                    printw("%d", diceRoll);
+                    refresh();
                 }
                 else
                 {
@@ -2995,11 +3040,16 @@ void aTurn()
     {
         // Human player
         diceRoll = getDiceRoll();
-        printw("%d", diceRoll);
-        refresh();
 
         while (numberOfSix < 3)
         {
+            tempcount = 0;
+
+            // Get the tokens
+            for (int i = 0; i < 4; i++)
+            {
+                temp[i] = getTokens(i);
+            }
 
             getPossibleMove(posmov, temp, diceRoll);
 
@@ -3032,12 +3082,6 @@ void aTurn()
 
             // Redraw the tokens
             printTokens();
-
-            // Get the tokens
-            for (int i = 0; i < 4; i++)
-            {
-                temp[i] = getTokens(i);
-            }
 
             if (diceRoll == 6 && numberOfSix < 3)
             {
@@ -3171,16 +3215,16 @@ int botJorgen(char posmov[], Tokens temp[])
     }
 
     //moving the token in safe zone
-    
-    int inSafeZone=0, numOfToken=-1;
-    
-    for (int i=0; i<4; i++)
+
+    int inSafeZone = 0, numOfToken = -1;
+
+    for (int i = 0; i < 4; i++)
     {
-        if (posmov[i]=='m')
+        if (posmov[i] == 'm')
         {
             if (temp[i].safe)
             {
-                if (inSafeZone<temp[i].pos)
+                if (inSafeZone < temp[i].pos)
                 {
                     inSafeZone = temp[i].pos;
                     numOfToken = i;
