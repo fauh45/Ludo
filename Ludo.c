@@ -1715,12 +1715,12 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                         // Do random suit for the bot
                         opChoice = suitRandom();
                     }
-                    else if (players[playerIndex[whosTurn - 1] + 1].comp && !(players[op].comp)) //if whos take turn is bot and opponents is user
+                    else if (players[playerIndex[whosTurn - 1]].comp && !(players[op].comp)) //if whos take turn is bot and opponents is user
                     {
                         choice = suitRandom();
                         suitMenu(&opChoice);
                     }
-                    else if (players[playerIndex[whosTurn - 1] + 1].comp && players[op].comp) //if both of whos take turn and opponents is bot
+                    else if (players[playerIndex[whosTurn - 1]].comp && players[op].comp) //if both of whos take turn and opponents is bot
                     {
                         choice = suitRandom();
                         opChoice = suitRandom();
@@ -1750,7 +1750,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     {
                         printToOptionBox("You've won!", 1, 1);
                     }
-                    else if (players[playerIndex[whosTurn - 1] + 1].comp && !(players[op].comp))
+                    else if (players[playerIndex[whosTurn - 1]].comp && !(players[op].comp))
                     {
                         printToOptionBox("You've lost!", 1, 1);
                     }
@@ -1772,7 +1772,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     {
                         printToOptionBox("You've lost!", 1, 1);
                     }
-                    else if (players[playerIndex[whosTurn - 1] + 1].comp && !(players[op].comp))
+                    else if (players[playerIndex[whosTurn - 1]].comp && !(players[op].comp))
                     {
                         printToOptionBox("You've won!", 1, 1);
                     }
@@ -1840,12 +1840,12 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     // Do random suit for the bot
                     opChoice = suitRandom();
                 }
-                else if (players[playerIndex[whosTurn - 1] + 1].comp && !(players[op].comp)) //if whos take turn is bot and opponents is user
+                else if (players[playerIndex[whosTurn - 1]].comp && !(players[op].comp)) //if whos take turn is bot and opponents is user
                 {
                     choice = suitRandom();
                     suitMenu(&opChoice);
                 }
-                else if (players[playerIndex[whosTurn - 1] + 1].comp && players[op].comp) //if both of whos take turn and opponents is bot
+                else if (players[playerIndex[whosTurn - 1]].comp && players[op].comp) //if both of whos take turn and opponents is bot
                 {
                     choice = suitRandom();
                     opChoice = suitRandom();
@@ -1875,7 +1875,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 {
                     printToOptionBox("You've won!", 1, 1);
                 }
-                else if (players[playerIndex[whosTurn - 1] + 1].comp && !(players[op].comp))
+                else if (players[playerIndex[whosTurn - 1]].comp && !(players[op].comp))
                 {
                     printToOptionBox("You've lost!", 1, 1);
                 }
@@ -1897,7 +1897,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 {
                     printToOptionBox("You've lost!", 1, 1);
                 }
-                else if (players[playerIndex[whosTurn - 1] + 1].comp && !(players[op].comp))
+                else if (players[playerIndex[whosTurn - 1]].comp && !(players[op].comp))
                 {
                     printToOptionBox("You've won!", 1, 1);
                 }
@@ -3409,6 +3409,9 @@ void saveGamestate()
 
         // Save the count as it's crucial part of the playgame
         fwrite(&count, sizeof(int), 1, saveGame);
+
+        // Get the numberOfBots
+        fwrite(&numberOfBots, sizeof(int), 1, saveGame);
     }
     else
     {
@@ -3455,6 +3458,9 @@ void getGameState()
 
         // Get the count as it's crucial part of the playgame
         fread(&count, sizeof(int), 1, saveGame);
+
+        // Get the numberOfBots
+        fread(&numberOfBots, sizeof(int), 1, saveGame);
     }
     else
     {
