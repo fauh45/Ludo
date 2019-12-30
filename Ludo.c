@@ -1705,7 +1705,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     printToOptionBox("You've won!", 1, 1);
                     WaitForSecond(1);
                     moveForward(diceNum, numOfToken);
-                    toHomeBase(numOfToken, op + 1);
+                    toHomeBase(opponents.ind, op + 1);
                 }
                 else
                 {
@@ -1713,7 +1713,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     printToOptionBox("You've lost!", 1, 1);
                     WaitForSecond(1);
 
-                    toHomeBase(opponents.ind, playerIndex[whosTurn - 1] + 1);
+                    toHomeBase(numOfToken, playerIndex[whosTurn - 1] + 1);
                 }
             }
             else
@@ -1799,7 +1799,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 printToOptionBox("You've lost!", 1, 1);
                 WaitForSecond(1);
 
-                toHomeBase(numOfToken, playerIndex[whosTurn - 1]);
+                toHomeBase(numOfToken, playerIndex[whosTurn - 1] + 1);
             }
         }
         else
@@ -3243,7 +3243,7 @@ int botJorgen(char posmov[], Tokens temp[])
 
     for (int i = 0; i < 4; i++)
     {
-        if (posmov[i]=='m')
+        if (posmov[i] == 'm')
         {
             if (relPos < temp[i].relpos)
             {
