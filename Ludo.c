@@ -2771,7 +2771,7 @@ bool isItWin(int index)
     tokensOfPlayer(token, index);
     for (int i = 0; i < 4; i++)
     {
-        if ((token[i].pos == 7) && token[i].safe) //the safezone number 7 is finish line
+        if ((token[i].pos == 6) && token[i].safe) //the safezone number 6 is finish line
         {
             finishedToken++;
         }
@@ -3243,10 +3243,13 @@ int botJorgen(char posmov[], Tokens temp[])
 
     for (int i = 0; i < 4; i++)
     {
-        if (relPos < temp[i].relpos)
+        if (posmov[i]=='m')
         {
-            relPos = temp[i].relpos;
-            numOfToken = i;
+            if (relPos < temp[i].relpos)
+            {
+                relPos = temp[i].relpos;
+                numOfToken = i;
+            }
         }
     }
 
