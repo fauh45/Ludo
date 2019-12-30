@@ -1784,13 +1784,13 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
 
             } while (whosWin == 0);
 
-            //if win then token moveForward opponents moveToHome and vice versa
+            //if win then token get the token out opponents moveToHome and vice versa
             if (whosWin == 1) //if user win
             {
                 clearOptionBox();
                 printToOptionBox("You've won!", 1, 1);
                 WaitForSecond(1);
-                moveForward(diceNum, numOfToken);
+                outFromHomeBase(numOfToken);
                 toHomeBase(opponents.ind, op + 1);
             }
             else
