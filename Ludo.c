@@ -3395,6 +3395,7 @@ void saveGamestate()
         6   Blue Token
         7   whosTurn
         8   count
+        9   numberOfBots
     */
     FILE *saveGame; // File for saving gamestate
     int i;          // Looping
@@ -3495,9 +3496,9 @@ void getGameState()
 int botHans(char posmov[], Tokens temp[], int diceNum)
 {
     //moving the token that near opponents
-    for (int i=0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
-        if (posmov[i]=='o')
+        if (posmov[i] == 'o')
         {
             switch (playerIndex[whosTurn - 1] + 1)
             {
@@ -3529,32 +3530,31 @@ int botHans(char posmov[], Tokens temp[], int diceNum)
 
             default:
                 break;
-            
+            }
         }
-    
+
         else if (posmov[i] == 'm')
         {
-            if (isBotHasOpponents(temp[i], temp.pos+diceNum))
+            if (isBotHasOpponents(temp[i], temp[i].pos + diceNum))
             {
                 return i;
             }
         }
-     }
-  }
-        
+    }
+
     //moving token that can out from base
-    for (int i=0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
-        if (posmov[i]=='o')
+        if (posmov[i] == 'o')
         {
             return i;
         }
     }
-        
+
     //moving the token in safe zone
-        
+
     int inSafeZone = 0, numOfToken = -1;
-    
+
     for (int i = 0; i < 4; i++)
     {
         if (posmov[i] == 'm')
@@ -3569,12 +3569,12 @@ int botHans(char posmov[], Tokens temp[], int diceNum)
             }
         }
     }
-        
+
     if (numOfToken != -1)
     {
         return numOfToken;
     }
-        
+
     //moving the biggest relpos
     int relPos = 0;
     for (int i = 0; i < 4; i++)
@@ -3594,22 +3594,22 @@ int botHans(char posmov[], Tokens temp[], int diceNum)
 
 bool isBotHasOpponents(Tokens token, int index)
 {
-    int i, j = 0;
+    int i = 0, j = 0;
 
     // Loops every array of token colour
     for (i = 0; i < 4; i++)
     {
         // Oppponents is there only if they're not the same colour, have the same positions
         // and not in the safezone
-        for (j = 0; j < 6; i++)
+        for (j = 0; j < 6; j++)
         {
             int numOfBox = index + j;
-            
-            if(numOfBox > 52)
+
+            if (numOfBox > 52)
             {
                 numOfBox -= 52;
             }
-            
+
             if (red[i].col != token.col && red[i].pos == numOfBox && !red[i].safe)
             {
                 return true;
@@ -3628,7 +3628,7 @@ bool isBotHasOpponents(Tokens token, int index)
             }
         }
     }
-        
+
     // If there's no opponent
     return false;
 }
