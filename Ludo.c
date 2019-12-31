@@ -637,6 +637,25 @@ bool isBotHasOpponents(Tokens token, int index);
 */
 void showLabel();
 
+/*
+    Input :
+    @token token that's going to be searched for enemy behind it
+    @index the position that's going to be checked
+    Output :true if there's any or false if there's none
+    Author : Muhammad Fauzan L.
+*/
+bool isThereOpponentsBehind(Tokens token, int index);
+
+/*
+    Input :
+    @posmov[] the possibility of moving tokens
+    @temp the token owned by the bot
+    @diceNum the current diceroll
+    Output : Number of token that's going to be moved
+    Author : Muhammad Fauzan L.
+*/
+int botMuller(char posmov[], Tokens temp[], int diceNum);
+
 int main()
 {
     int choice[3];
@@ -706,9 +725,6 @@ int main()
 
         destroyBoard();
         destroyOptionBox();
-
-        printw("Done");
-        refresh();
         // Remove the handler as it's not used anymore
         signal(SIGINT, SIG_DFL);
         getch();
@@ -1128,17 +1144,36 @@ void destroyBoard()
     {
         for (j = 0; j <= 14; j++)
         {
-            // Restore back the window to black
-            wbkgd(board[i][j], COLOR_PAIR(BOARD_BLACK));
+            if (i == 0 && j == 2)
+            {
+                continue;
+            }
+            else if (i == 0 && j == 11)
+            {
+                continue;
+            }
+            else if (i == 9 && j == 2)
+            {
+                continue;
+            }
+            else if (i == 9 && j == 11)
+            {
+                continue;
+            }
+            else
+            {
+                // Restore back the window to black
+                wbkgd(board[i][j], COLOR_PAIR(BOARD_BLACK));
 
-            // Clear out whatever inside the window
-            werase(board[i][j]);
+                // Clear out whatever inside the window
+                werase(board[i][j]);
 
-            // Update it
-            wrefresh(board[i][j]);
+                // Update it
+                wrefresh(board[i][j]);
 
-            // Delete as it's not used anymore
-            delwin(board[i][j]);
+                // Delete as it's not used anymore
+                delwin(board[i][j]);
+            }
         }
     }
 }
@@ -1974,7 +2009,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 }
 
                 WaitForSecond(1);
-                outFromHomeBase(diceNum);
+                outFromHomeBase(numOfToken);
                 for (int i = 0; i < 4; i++)
                 {
                     if (opponents[i].col != 'n')
@@ -3197,7 +3232,7 @@ void aTurn()
                     break;
 
                 case 'm':
-                    //get number of token from müller bot
+                    numOfToken = botMuller(posmov, temp, diceRoll);
                     break;
 
                 default:
@@ -3773,6 +3808,118 @@ void showLabel()
             default:
                 break;
             }
+        }
+    }
+}
+
+bool isThereOpponentsBehind(Tokens token, int index)
+{
+    int i, j; // Looping
+    int pos;  // Position currently being searched
+
+    // Check for every position behind the token until 6 blocks behind
+    for (i = 0; i <= 6; i++)
+    {
+        pos = index - i;
+
+        // If the position is zero or negative come back to 52
+        if (pos <= 0)
+        {
+            pos += 52;
+        }
+
+        // Check for every position of tokens
+        for (j = 0; j < 4; j++)
+        {
+            // Check if there's any opponents tokens in the position and are not in the safezone
+            if (red[i].col != token.col && red[i].pos == pos && !red[i].safe)
+            {
+                return true;
+            }
+            else if (green[i].col != token.col && green[i].pos == pos && !green[i].safe)
+            {
+                return true;
+            }
+            else if (blue[i].col != token.col && blue[i].pos == pos && !blue[i].safe)
+            {
+                return true;
+            }
+            else if (yellow[i].col != token.col && yellow[i].pos == pos && !yellow[i].safe)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+int botMuller(char posmov[], Tokens temp[], int diceNum)
+{
+    Tokens opponents[4];
+
+    // Check for moves from the list of tokens
+    for (int i = 0; i < 4; i++)
+    {
+        // If possible move is to move forward
+        if (posmov[i] == 'm')
+        {
+            getOpponents(temp[i], opponents, temp[i].pos + diceNum);
+
+            // Prioritize token which are in range of other token
+            if (!isThereOpponentsBehind(temp[i], temp[i].pos) && opponents[0].col == 'n')
+            {
+                return i;
+            }
+            // Next priority any is token in the safe
+            else if (temp[i].safe)
+            {
+                return i;
+            }
+        }
+        // If possible move is to get the token out of the homebase, check if there's no one behind
+        else if (posmov[i] == 'o')
+        {
+            switch (playerIndex[whosTurn - 1] + 1)
+            {
+            case 1:
+                if (!isThereOpponentsBehind(temp[i], 1))
+                {
+                    return i;
+                }
+                break;
+
+            case 2:
+                if (!isThereOpponentsBehind(temp[i], 14))
+                {
+                    return i;
+                }
+                break;
+
+            case 3:
+                if (!isThereOpponentsBehind(temp[i], 27))
+                {
+                    return i;
+                }
+            case 4:
+                if (!isThereOpponentsBehind(temp[i], 51))
+                {
+                    return i;
+                }
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+
+    // If there's no possibilities, move out the first token that's possible to move
+    for (int i = 0; i < 4; i++)
+    {
+        if (posmov[i] == 'm' || posmov[i] == 'o')
+        {
+            return i;
         }
     }
 }
