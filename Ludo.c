@@ -665,6 +665,20 @@ int botMuller(char posmov[], Tokens temp[], int diceNum);
 */
 int calculateScore(int position);
 
+/*
+    Initial State : Screen is empty
+    Final State : Shows win message
+    Author : Muhammad Fauzan L.
+*/
+void showWin();
+
+/*
+    Initial State : Screen is empty
+    Final State : Shows lose message
+    Author : Muhammad Fauzan L.
+*/
+void showLose();
+
 int main()
 {
     int choice[3];
@@ -737,17 +751,23 @@ int main()
         // Remove the handler as it's not used anymore
         signal(SIGINT, SIG_DFL);
 
+        // Clear out the screen
+        clear();
+        refresh();
+        
         if (isAllBotWin())
         {
             /*
                 Show losing screen here
             */
+           showLose();
         }
         else
         {
             /*
                 Show winning screen
             */
+           showWin();
         }
 
         getch();
@@ -796,11 +816,16 @@ int main()
         // Remove the handler
         signal(SIGINT, SIG_DFL);
 
+        // Clear out the screen
+        clear();
+        refresh();
+
         if (isAllBotWin())
         {
             /*
                 Show losing screen here
             */
+           showLose();
         }
         else
         {
@@ -808,6 +833,7 @@ int main()
                 Show winning screen
                 Highscore checking
             */
+           showWin();
         }
 
         getch();
@@ -4047,4 +4073,106 @@ int calculateScore(int position)
 
     // Return the score
     return baseScore - floor(moves / 4);
+}
+
+void showWin()
+{
+    WINDOW *win;
+    FILE *winning;
+    int i;
+    char winning_data[125];
+
+    // As winning losing is an ASCII art it's easier to print from a file
+    // Open it as read-only
+    winning = fopen("win.txt", "r");
+
+    // File not found or cannot be openned
+    if (winning == NULL)
+    {
+        erase();
+
+        printw("Win file not found / permission problems");
+        getch();
+
+        // Return back the console properties
+        echo();
+        curs_set(1);
+        exit(3);
+    }
+
+    // New widow to put the winning losing
+    // Horizontally center
+    win = newWindow(10, 44, getMiddleX(stdscr, 44), 1);
+
+    // Show the winning losing
+    for (i = 0; i < 6; i++)
+    {
+        if (fgets(winning_data, 125, winning) != NULL)
+        {
+            mvwprintw(win, i, 0, winning_data);
+        }
+        else
+        {
+            // If somehow the file reaches End-Of-File
+            mvwprintw(win, i, 0, "EOF!");
+        }
+    }
+
+    // Close the file and refresh the screen
+    fclose(winning);
+    wrefresh(win);
+
+    // Delete the window as it's not used anymore
+    delwin(win);
+}
+
+void showLose()
+{
+    WINDOW *lose;
+    FILE *losing;
+    int i;
+    char losing_data[125];
+
+    // As losing message is an ASCII art it's easier to print from a file
+    // Open it as read-only
+    losing = fopen("win.txt", "r");
+
+    // File not found or cannot be openned
+    if (losing == NULL)
+    {
+        erase();
+
+        printw("Lose file not found / permission problems");
+        getch();
+
+        // Return back the console properties
+        echo();
+        curs_set(1);
+        exit(3);
+    }
+
+    // New widow to put the losing message
+    // Horizontally center
+    lose = newWindow(10, 45, getMiddleX(stdscr, 45), 1);
+
+    // Show the losing message
+    for (i = 0; i < 6; i++)
+    {
+        if (fgets(losing_data, 125, losing) != NULL)
+        {
+            mvwprintw(lose, i, 0, losing_data);
+        }
+        else
+        {
+            // If somehow the file reaches End-Of-File
+            mvwprintw(lose, i, 0, "EOF!");
+        }
+    }
+
+    // Close the file and refresh the screen
+    fclose(losing);
+    wrefresh(lose);
+
+    // Delete the window as it's not used anymore
+    delwin(lose);
 }
