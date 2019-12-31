@@ -754,20 +754,20 @@ int main()
         // Clear out the screen
         clear();
         refresh();
-        
+
         if (isAllBotWin())
         {
             /*
                 Show losing screen here
             */
-           showLose();
+            showLose();
         }
         else
         {
             /*
                 Show winning screen
             */
-           showWin();
+            showWin();
         }
 
         getch();
@@ -825,7 +825,7 @@ int main()
             /*
                 Show losing screen here
             */
-           showLose();
+            showLose();
         }
         else
         {
@@ -833,7 +833,7 @@ int main()
                 Show winning screen
                 Highscore checking
             */
-           showWin();
+            showWin();
         }
 
         getch();
@@ -843,6 +843,14 @@ int main()
         /*
             Show highscore here
         */
+        clear();
+        if (!isFileExist("highscore.txt"))
+        {
+            printw("File don't exist, press anything to exit...");
+            getch();
+            exit(6);
+        }
+
         showHighScore();
         break;
 
