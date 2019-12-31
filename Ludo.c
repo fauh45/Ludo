@@ -630,6 +630,13 @@ void getGameState();
 */
 bool isBotHasOpponents(Tokens token, int index);
 
+/*
+    Initial State : Labels are not shown
+    Final State : Label of every player are shown
+    Author : Muhammad Fauzan L.
+*/
+void showLabel();
+
 int main()
 {
     int choice[3];
@@ -674,6 +681,9 @@ int main()
         // Initialized the board and the option box
         showOptionBox();
         initBoard();
+
+        // Show the labels
+        showLabel();
 
         // Draw the board
         showBoard();
@@ -730,6 +740,9 @@ int main()
         // Initialized the board and the option box
         showOptionBox();
         initBoard();
+
+        // Show the labels
+        showLabel();
 
         // Draw the board
         showBoard();
@@ -795,7 +808,11 @@ void showBoard()
     {
         for (j = 0; j <= 5; j++)
         {
-            if (i == 0 || i == 5)
+            if (i == 0 && j == 2)
+            {
+                continue;
+            }
+            else if (i == 0 || i == 5)
             {
                 wbkgd(board[i][j], COLOR_PAIR(BOARD_BLACK));
                 wrefresh(board[i][j]);
@@ -818,7 +835,11 @@ void showBoard()
     {
         for (j = 9; j <= 14; j++)
         {
-            if (i == 0 || i == 5)
+            if (i == 0 && j == 11)
+            {
+                continue;
+            }
+            else if (i == 0 || i == 5)
             {
                 wbkgd(board[i][j], COLOR_PAIR(BOARD_BLACK));
                 wrefresh(board[i][j]);
@@ -841,7 +862,11 @@ void showBoard()
     {
         for (j = 9; j <= 14; j++)
         {
-            if (i == 9 || i == 14)
+            if (i == 9 && j == 11)
+            {
+                continue;
+            }
+            else if (i == 9 || i == 14)
             {
                 wbkgd(board[i][j], COLOR_PAIR(BOARD_BLACK));
                 wrefresh(board[i][j]);
@@ -864,7 +889,11 @@ void showBoard()
     {
         for (j = 0; j <= 5; j++)
         {
-            if (i == 9 || i == 14)
+            if (i == 9 && j == 2)
+            {
+                continue;
+            }
+            else if (i == 9 || i == 14)
             {
                 wbkgd(board[i][j], COLOR_PAIR(BOARD_BLACK));
                 wrefresh(board[i][j]);
@@ -1021,13 +1050,38 @@ void initBoard()
     {
         for (j = 0; j < 15; j++)
         {
-            board[i][j] = newWindow(2, 4, x, y);
+            if (i == 0 && j == 1)
+            {
+                board[i][j] = newWindow(2, 8, x, y);
+            }
+            else if (i == 9 && j == 10)
+            {
+                board[i][j] = newWindow(2, 8, x, y);
+            }
+            else if (i == 0 && j == 10)
+            {
+                board[i][j] = newWindow(2, 8, x, y);
+            }
+            else if (i == 9 && j == 1)
+            {
+                board[i][j] = newWindow(2, 8, x, y);
+            }
+            else
+            {
+                board[i][j] = newWindow(2, 4, x, y);
+            }
+
             x += 4;
             refresh();
         }
         x = 1;
         y += 2;
     }
+
+    delwin(board[0][2]);
+    delwin(board[0][11]);
+    delwin(board[9][2]);
+    delwin(board[9][11]);
 }
 
 void clearBoard()
@@ -1741,6 +1795,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     else if (players[playerIndex[whosTurn - 1]].comp && players[op].comp) //if both of whos take turn and opponents is bot
                     {
                         choice = suitRandom();
+                        WaitForSecond(1);
                         opChoice = suitRandom();
                     }
 
@@ -1753,8 +1808,8 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                         if ((!players[playerIndex[whosTurn - 1]].comp) || !(players[op].comp))
                         {
                             printToOptionBox("A draw!", 1, 1);
+                            WaitForSecond(1);
                         }
-                        WaitForSecond(1);
                     }
 
                 } while (whosWin == 0);
@@ -1866,6 +1921,7 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 else if (players[playerIndex[whosTurn - 1]].comp && players[op].comp) //if both of whos take turn and opponents is bot
                 {
                     choice = suitRandom();
+                    WaitForSecond(1);
                     opChoice = suitRandom();
                 }
 
@@ -1878,8 +1934,8 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     if ((!players[playerIndex[whosTurn - 1]].comp) || !(players[op].comp))
                     {
                         printToOptionBox("A draw!", 1, 1);
+                        WaitForSecond(1);
                     }
-                    WaitForSecond(1);
                 }
 
             } while (whosWin == 0);
@@ -3136,6 +3192,9 @@ void aTurn()
 
                 // Redraw the board
                 showBoard();
+                
+                // Show the labels
+                showLabel();
 
                 // Redraw the tokens
                 printTokens();
@@ -3201,6 +3260,9 @@ void aTurn()
 
             // Redraw the board
             showBoard();
+
+            // Show the labels
+            showLabel();
 
             // Redraw the tokens
             printTokens();
@@ -3631,4 +3693,67 @@ bool isBotHasOpponents(Tokens token, int index)
 
     // If there's no opponent
     return false;
+}
+
+void showLabel()
+{
+    int i;
+    char label[15];
+    for (i = 0; i < 4; i++)
+    {
+        if (players[i].col == 'n')
+        {
+            continue;
+        }
+        else
+        {
+            if (!players[i].comp)
+            {
+                strcpy(label, "You");
+            }
+            else
+            {
+                switch (players[i].comptype)
+                {
+                case 'j':
+                    strcpy(label, "Jorgen");
+                    break;
+                
+                case 'h':
+                    strcpy(label, "Hans");
+                    break;
+
+                case 'm':
+                    strcpy(label, "Muller");
+                    break;
+                }
+            }
+        }
+
+        switch (players[i].col)
+        {
+        case 'r':
+            mvwprintw(board[0][10], 1, 0, label);
+            wrefresh(board[0][10]);
+            break;
+        
+        case 'g':
+            mvwprintw(board[9][10], 1, 0, label);
+            wrefresh(board[9][10]);
+            break;
+
+        case 'y':
+            mvwprintw(board[9][1], 1, 0, label);
+            wrefresh(board[9][1]);
+            break;
+
+        case 'b':
+            mvwprintw(board[0][1], 1, 0, label);
+            wrefresh(board[0][1]);
+            break;
+
+        default:
+            break;
+        }
+    }
 }
