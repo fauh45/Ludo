@@ -1674,6 +1674,11 @@ void initPlayerData(int botIndexes[3])
 void getOpponents(Tokens token, Tokens opponents[], int index)
 {
     int i, j = 0;
+    
+    if (index > 52)
+    {
+        index -= 52;
+    }
 
     // Loops every array of token colour
     for (i = 0; i < 4; i++)
