@@ -1094,8 +1094,27 @@ void clearBoard()
     {
         for (j = 0; j < 15; j++)
         {
-            werase(board[i][j]);
-            wrefresh(board[i][j]);
+            if (i == 0 && j == 2)
+            {
+                continue;
+            }
+            else if (i == 0 && j == 11)
+            {
+                continue;
+            }
+            else if (i == 9 && j == 2)
+            {
+                continue;
+            }
+            else if (i == 9 && j == 11)
+            {
+                continue;
+            }
+            else
+            {
+                werase(board[i][j]);
+                wrefresh(board[i][j]);
+            }
         }
     }
 }
@@ -3192,7 +3211,7 @@ void aTurn()
 
                 // Redraw the board
                 showBoard();
-                
+
                 // Show the labels
                 showLabel();
 
@@ -3718,7 +3737,7 @@ void showLabel()
                 case 'j':
                     strcpy(label, "Jorgen");
                     break;
-                
+
                 case 'h':
                     strcpy(label, "Hans");
                     break;
@@ -3728,32 +3747,32 @@ void showLabel()
                     break;
                 }
             }
-        }
 
-        switch (players[i].col)
-        {
-        case 'r':
-            mvwprintw(board[0][10], 1, 0, label);
-            wrefresh(board[0][10]);
-            break;
-        
-        case 'g':
-            mvwprintw(board[9][10], 1, 0, label);
-            wrefresh(board[9][10]);
-            break;
+            switch (players[i].col)
+            {
+            case 'r':
+                mvwprintw(board[0][10], 1, 0, label);
+                wrefresh(board[0][10]);
+                break;
 
-        case 'y':
-            mvwprintw(board[9][1], 1, 0, label);
-            wrefresh(board[9][1]);
-            break;
+            case 'g':
+                mvwprintw(board[9][10], 1, 0, label);
+                wrefresh(board[9][10]);
+                break;
 
-        case 'b':
-            mvwprintw(board[0][1], 1, 0, label);
-            wrefresh(board[0][1]);
-            break;
+            case 'y':
+                mvwprintw(board[9][1], 1, 0, label);
+                wrefresh(board[9][1]);
+                break;
 
-        default:
-            break;
+            case 'b':
+                mvwprintw(board[0][1], 1, 0, label);
+                wrefresh(board[0][1]);
+                break;
+
+            default:
+                break;
+            }
         }
     }
 }
