@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <signal.h>
+#include <math.h>
 
 /* OS Detection to make sure screen clearing, sleep, and curses function works */
 #if defined(__linux__) || defined(unix)
@@ -555,7 +556,7 @@ void initHighScore();
     Final State : The new highscore isn't written in the highscore
     Author : Marissa Nur Amalia
 */
-void writeHighScore(int newHighScore);
+void writeHighScore(int newHighScore, char usrname);
 
 /*
     Input :
@@ -656,6 +657,14 @@ bool isThereOpponentsBehind(Tokens token, int index);
 */
 int botMuller(char posmov[], Tokens temp[], int diceNum);
 
+/*
+    Input :
+    @position winning position of the user
+    Output : The score of the player
+    Author : Muhammad Fauzan L.
+*/
+int calculateScore(int position);
+
 int main()
 {
     int choice[3];
@@ -727,11 +736,21 @@ int main()
         destroyOptionBox();
         // Remove the handler as it's not used anymore
         signal(SIGINT, SIG_DFL);
-        getch();
-        /*
-            End of game handling here
-        */
 
+        if (isAllBotWin())
+        {
+            /*
+                Show losing screen here
+            */
+        }
+        else
+        {
+            /*
+                Show winning screen
+            */
+        }
+
+        getch();
         break;
 
     case 1:
@@ -776,16 +795,29 @@ int main()
 
         // Remove the handler
         signal(SIGINT, SIG_DFL);
+
+        if (isAllBotWin())
+        {
+            /*
+                Show losing screen here
+            */
+        }
+        else
+        {
+            /*
+                Show winning screen
+                Highscore checking
+            */
+        }
+
         getch();
-        /*
-            End of Game handling here
-        */
         break;
 
     case 2:
         /*
             Show highscore here
         */
+        showHighScore();
         break;
 
     case 3:
@@ -1674,7 +1706,7 @@ void initPlayerData(int botIndexes[3])
 void getOpponents(Tokens token, Tokens opponents[], int index)
 {
     int i, j = 0;
-    
+
     if (index > 52)
     {
         index -= 52;
@@ -3075,28 +3107,41 @@ void initHighScore()
 
 void showHighScore()
 {
+    WINDOW *highScore;
     FILE *yey = fopen("highscore.txt", "rb");
     Score scr;
+    char temp[55];
 
-    //    printf(“WALL OF FAME\n”);
-    //    printf(“HIGH SCORE OF DECADE\n”);
+    highScore = newWindow(15, 57, getMiddleX(stdscr, 57), 5);
+    wborder(options, 0, 0, 0, 0, 0, 0, 0, 0);
+    wrefresh(options);
+
+    mvwprintw(highScore, 1, getMiddleX(highScore, strlen("WALL OF FAME")), "WALL OF FAME");
+    mvwprintw(highScore, 2, getMiddleX(highScore, strlen("HIGH SCORE OF DECADE")), "HIGH SCORE OF DECADE");
 
     for (int i = 0; i < 10; i++)
     {
-        fscanf(yey, "%s %d\n", &scr.name, &scr.score);
-        printf("%d %s %d\n", (i + 1), scr.name, scr.score);
+        fscanf(yey, "%s %d\n", scr.name, &scr.score);
+        mvwprintw(highScore, 3 + i, 1, "%d %s %d\n", (i + 1), scr.name, scr.score);
     }
+
     fclose(yey);
+
+    wattron(options, A_REVERSE);
+    mvwprintw(highScore, 14, getMiddleX(highScore, strlen("Exit")), "Exit");
+    wattroff(options, A_REVERSE);
+
+    wrefresh(options);
+    getch();
 }
 
-void writeHighScore(int newHighScore)
+void writeHighScore(int newHighScore, char usrname)
 {
     FILE *X;
-    Score scr;
 
     X = fopen("highscore.txt", "ab");
-
-    fprintf(X, "%s %d", scr.name, scr.score);
+    fprintf(X, "%s %d", usrname, newHighScore);
+    fclose(X);
 
     sortHighScore();
 }
@@ -3110,20 +3155,22 @@ bool isHighScore(int caHighScore)
 
     for (int i = 0; i < 10; i++)
     {
-        fscanf(X, "%s %d\n", &scr.name, &scr.score);
+        fscanf(X, "%s %d\n", scr.name, &scr.score);
 
         if (scr.score < caHighScore)
         {
+            fclose(X);
             return true;
         }
     }
+    fclose(X);
     return false;
 }
 
 void sortHighScore()
 {
     FILE *arrange;
-    Score scr[10], temp;
+    Score scr[12], temp;
     int N;
     int i, j;
 
@@ -3131,7 +3178,7 @@ void sortHighScore()
     N = 0;
     while (!feof(arrange))
     {
-        fscanf(arrange, "%s %d\n", &scr[N].name, &scr[N].score);
+        fscanf(arrange, "%s %d", scr[N].name, &scr[N].score);
         N++;
     }
 
@@ -3550,7 +3597,7 @@ void saveGamestate()
         // Save the count as it's crucial part of the playgame
         fwrite(&count, sizeof(int), 1, saveGame);
 
-        // Get the numberOfBots
+        // Save the numberOfBots
         fwrite(&numberOfBots, sizeof(int), 1, saveGame);
     }
     else
@@ -3927,4 +3974,77 @@ int botMuller(char posmov[], Tokens temp[], int diceNum)
             return i;
         }
     }
+}
+
+int calculateScore(int position)
+{
+    int moves;     // Number of user moves
+    int i;         // Looping
+    int baseScore; // Base score that's given to player based on winning position
+
+    // Getting the move
+    for (i = 0; i < 4; i++)
+    {
+        if (!players[i].comp && players[i].col != 'n')
+        {
+            moves = players[i].move;
+        }
+    }
+
+    // baseScore based of how much bots and position
+    switch (numberOfBots)
+    {
+    case 1:
+        if (position == 1)
+        {
+            baseScore = 250;
+        }
+        else
+        {
+            baseScore = 0;
+        }
+        break;
+
+    case 2:
+        switch (position)
+        {
+        case 1:
+            baseScore = 500;
+            break;
+
+        case 2:
+            baseScore = 250;
+            break;
+
+        default:
+            baseScore = 0;
+            break;
+        }
+
+    case 3:
+        switch (position)
+        {
+        case 1:
+            baseScore = 1000;
+            break;
+
+        case 2:
+            baseScore = 500;
+            break;
+
+        case 3:
+            baseScore = 250;
+            break;
+
+        default:
+            baseScore = 0;
+            break;
+        }
+
+    default:
+        break;
+    }
+
+    // Return the score
+    return baseScore - floor(moves / 4);
 }
