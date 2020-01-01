@@ -3180,27 +3180,32 @@ void showHighScore()
     FILE *yey = fopen("highscore.txt", "rb");
     Score scr;
     char temp[55];
+    
+    clear();
+    refresh();
 
     highScore = newWindow(15, 57, getMiddleX(stdscr, 57), 5);
-    wborder(options, 0, 0, 0, 0, 0, 0, 0, 0);
-    wrefresh(options);
+    wrefresh(highScore);
 
     mvwprintw(highScore, 1, getMiddleX(highScore, strlen("WALL OF FAME")), "WALL OF FAME");
     mvwprintw(highScore, 2, getMiddleX(highScore, strlen("HIGH SCORE OF DECADE")), "HIGH SCORE OF DECADE");
+    wrefresh(highScore);
 
     for (int i = 0; i < 10; i++)
     {
         fscanf(yey, "%s %d\n", scr.name, &scr.score);
-        mvwprintw(highScore, 3 + i, 1, "%d %s %d\n", (i + 1), scr.name, scr.score);
+        mvwprintw(highScore, 3 + i, 3, "%d %s %d\n", (i + 1), scr.name, scr.score);
     }
 
     fclose(yey);
 
-    wattron(options, A_REVERSE);
-    mvwprintw(highScore, 14, getMiddleX(highScore, strlen("Exit")), "Exit");
-    wattroff(options, A_REVERSE);
+    wborder(highScore, 0, 0, 0, 0, 0, 0, 0, 0);
 
-    wrefresh(options);
+    wattron(highScore, A_REVERSE);
+    mvwprintw(highScore, 14, getMiddleX(highScore, strlen("Exit")), "Exit");
+    wattroff(highScore, A_REVERSE);
+
+    wrefresh(highScore);
     getch();
 }
 
