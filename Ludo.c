@@ -55,10 +55,11 @@ typedef struct
 
 typedef struct
 {
-    char col;      //Color of the player
-    bool comp;     //Is the player a computer or not
+    char col;      // Color of the player
+    bool comp;     // Is the player a computer or not
     char comptype; // Type of computers
-    int move;      //How much the player has move
+    int move;      // How much the player has move
+    int kill;      // How many times the player kill
 } Player;
 
 typedef struct
@@ -99,12 +100,10 @@ Tokens green[4];
 Tokens yellow[4];
 Tokens blue[4];
 
-// Number of bots
-int numberOfBots;
-// Who's take the turn
-int whosTurn = 1;
-// Count how many turn that already done
-int count = 0;
+int numberOfBots; // Number of bots
+int whosTurn = 1; // Who's take the turn
+int count = 0;    // Count how many turn that already done
+int position = 1; // Rank in the game
 
 /* Function Prototype */
 
@@ -553,10 +552,11 @@ void initHighScore();
     Initial State : The new highscore isn't written in the highscore
     Input :
     @newHighScore the new highscore after game
+    @usrname the username of the owner of the highscore
     Final State : The new highscore isn't written in the highscore
     Author : Marissa Nur Amalia
 */
-void writeHighScore(int newHighScore, char usrname);
+void writeHighScore(int newHighScore, char usrname[]);
 
 /*
     Input :
@@ -679,6 +679,15 @@ void showWin();
 */
 void showLose();
 
+/*
+    Initial State : User score is known to be a new highscore
+    Final State : User has inputted a name and the score is written to the file
+    Input :
+    @score the new highscore score
+    Author : Muhammad Fauzan L.
+*/
+void newHighScoreMenu(int score);
+
 int main()
 {
     int choice[3];
@@ -705,6 +714,14 @@ int main()
     init_pair(BOARD_WHITE, COLOR_BLACK, COLOR_WHITE);
     init_pair(BOARD_BLACK, COLOR_WHITE, COLOR_BLACK);
 
+    // Check for the highscore file
+    if (!isFileExist("highscore.txt"))
+    {
+        // If none found, initalize the file
+        initHighScore();
+    }
+
+    // Show main menu and get the user choice in menu
     switch (getUserChoiceinMenu())
     {
     case 0:
@@ -746,8 +763,10 @@ int main()
             }
         }
 
+        // Delete the board and option box as it's not used anymore
         destroyBoard();
         destroyOptionBox();
+
         // Remove the handler as it's not used anymore
         signal(SIGINT, SIG_DFL);
 
@@ -761,6 +780,7 @@ int main()
                 Show losing screen here
             */
             showLose();
+            getch();
         }
         else
         {
@@ -768,6 +788,21 @@ int main()
                 Show winning screen
             */
             showWin();
+
+            // Calculate the high score if player win
+            int score = calculateScore(position);
+
+            // If the score is top 10 of the highscore
+            if (isHighScore(score))
+            {
+                newHighScoreMenu(score);
+            }
+            else
+            {
+                mvprintw(8, getMiddleX(stdscr, strlen("Your score is     ")), "Your score is %d", score);
+                mvprintw(9, getMiddleX(stdscr, strlen("Not a new highscore, press anything to exit...")), "Not a new highscore, press anything to exit...");
+                refresh();
+            }
         }
 
         getch();
@@ -831,9 +866,23 @@ int main()
         {
             /*
                 Show winning screen
-                Highscore checking
             */
             showWin();
+
+            // Calculate the high score if player win
+            int score = calculateScore(position);
+
+            // If the score is top 10 of the highscore
+            if (isHighScore(score))
+            {
+                newHighScoreMenu(score);
+            }
+            else
+            {
+                mvprintw(8, getMiddleX(stdscr, strlen("Your score is     ")), "Your score is %d", score);
+                mvprintw(9, getMiddleX(stdscr, strlen("Not a new highscore, press anything to exit...")), "Not a new highscore, press anything to exit...");
+                refresh();
+            }
         }
 
         getch();
@@ -844,12 +893,6 @@ int main()
             Show highscore here
         */
         clear();
-        if (!isFileExist("highscore.txt"))
-        {
-            printw("File don't exist, press anything to exit...");
-            getch();
-            exit(6);
-        }
 
         showHighScore();
         break;
@@ -1549,6 +1592,7 @@ void initHumanPlayerData(int colour)
     players[colour].col = col;
     players[colour].comp = false;
     players[colour].move = 0;
+    players[colour].kill = 0;
 
     for (i = 0; i < 4; i++)
     {
@@ -1646,6 +1690,7 @@ void initBotPlayerData(int botIndexes, int colour)
     players[colour].comp = true;
     players[colour].comptype = botIndex;
     players[colour].move = 0;
+    players[colour].kill = 0;
 
     for (i = 0; i < 4; i++)
     {
@@ -1954,7 +1999,10 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     }
 
                     WaitForSecond(1);
+                    // Move the player token forward
                     moveForward(diceNum, numOfToken);
+                    // Add the kill
+                    players[playerIndex[whosTurn - 1]].kill++;
                     for (int i = 0; i < 4; i++)
                     {
                         if (opponents[i].col != 'n')
@@ -1976,6 +2024,8 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                     }
                     WaitForSecond(1);
 
+                    // Add the kill to opponents of the player currently playing
+                    players[op].kill++;
                     toHomeBase(numOfToken, playerIndex[whosTurn - 1] + 1);
                 }
             }
@@ -2080,7 +2130,10 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 }
 
                 WaitForSecond(1);
+                // Move the winner token out of the homebase
                 outFromHomeBase(numOfToken);
+                // Add the kill
+                players[playerIndex[whosTurn - 1]].kill++;
                 for (int i = 0; i < 4; i++)
                 {
                     if (opponents[i].col != 'n')
@@ -2102,6 +2155,8 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
                 }
                 WaitForSecond(1);
 
+                // Add the kill
+                players[op].kill++;
                 toHomeBase(numOfToken, playerIndex[whosTurn - 1] + 1);
             }
         }
@@ -2129,6 +2184,12 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken)
     case 'b':
         players[3].move++;
         break;
+    }
+
+    // If the bot is complete, the player rank will go down
+    if (isItWin(playerIndex[whosTurn - 1]) && players[playerIndex[whosTurn - 1]].comp)
+    {
+        position++;
     }
 
     // End the turn
@@ -3030,9 +3091,9 @@ bool isAllBotWin()
     int howManyBotsAreWin;
     for (int i = 0; i < numberOfBots + 1; i++)
     {
-        if (players[i].comp)
+        if (players[playerIndex[i]].comp)
         {
-            if (isItWin(i))
+            if (isItWin(playerIndex[i]))
             {
                 howManyBotsAreWin++;
             }
@@ -3052,7 +3113,7 @@ bool isUserWin()
     {
         if (!players[playerIndex[i]].comp)
         {
-            if (isItWin(i))
+            if (isItWin(playerIndex[i]))
             {
                 return true;
             }
@@ -3169,7 +3230,7 @@ void showHighScore()
     getch();
 }
 
-void writeHighScore(int newHighScore, char usrname)
+void writeHighScore(int newHighScore, char usrname[])
 {
     FILE *X;
 
@@ -3598,6 +3659,7 @@ void saveGamestate()
         7   whosTurn
         8   count
         9   numberOfBots
+        10  position
     */
     FILE *saveGame; // File for saving gamestate
     int i;          // Looping
@@ -3633,6 +3695,9 @@ void saveGamestate()
 
         // Save the numberOfBots
         fwrite(&numberOfBots, sizeof(int), 1, saveGame);
+
+        // Save the position of the player
+        fwrite(&position, sizeof(int), 1, saveGame);
     }
     else
     {
@@ -3682,6 +3747,9 @@ void getGameState()
 
         // Get the numberOfBots
         fread(&numberOfBots, sizeof(int), 1, saveGame);
+
+        // Get the position of the player
+        fread(&position, sizeof(int), 1, saveGame);
     }
     else
     {
@@ -3943,11 +4011,13 @@ bool isThereOpponentsBehind(Tokens token, int index)
 int botMuller(char posmov[], Tokens temp[], int diceNum)
 {
     Tokens opponents[4];
+    int i;
+    int min = -1;
+    int pos = -1;
 
-    // Check for moves from the list of tokens
-    for (int i = 0; i < 4; i++)
+    // If possible move is to move forward
+    for (i = 0; i < 4; i++)
     {
-        // If possible move is to move forward
         if (posmov[i] == 'm')
         {
             getOpponents(temp[i], opponents, temp[i].pos + diceNum);
@@ -3957,14 +4027,23 @@ int botMuller(char posmov[], Tokens temp[], int diceNum)
             {
                 return i;
             }
-            // Next priority any is token in the safe
-            else if (temp[i].safe)
-            {
-                return i;
-            }
         }
+    }
+
+    for (i = 0; i < 4; i++)
+    {
+        // Next priority any is token in the safe, and can move
+        if (temp[i].safe && posmov[i] == 'm')
+        {
+            return i;
+        }
+    }
+
+    // Next priority on the token that's still in home base
+    for (i = 0; i < 4; i++)
+    {
         // If possible move is to get the token out of the homebase, check if there's no one behind
-        else if (posmov[i] == 'o')
+        if (posmov[i] == 'o')
         {
             switch (playerIndex[whosTurn - 1] + 1)
             {
@@ -4000,7 +4079,32 @@ int botMuller(char posmov[], Tokens temp[], int diceNum)
         }
     }
 
-    // If there's no possibilities, move out the first token that's possible to move
+    // If there's still no token with that criteria, move out the token which is farthest from safezone
+    for (i = 0; i < 4; i++)
+    {
+        if (posmov[i] == 'm')
+        {
+            if (i == 0)
+            {
+                // Initialize the min with the first token relpos
+                min = temp[i].relpos;
+                pos = i;
+            }
+            else if (min > temp[i].relpos)
+            {
+                min = temp[i].relpos;
+                pos = i;
+            }
+        }
+    }
+
+    // Check if there's one found
+    if (min != -1 && pos != -1)
+    {
+        return pos;
+    }
+
+    // If there's still no possibilities, move out the first token that's possible to move
     for (int i = 0; i < 4; i++)
     {
         if (posmov[i] == 'm' || posmov[i] == 'o')
@@ -4013,6 +4117,7 @@ int botMuller(char posmov[], Tokens temp[], int diceNum)
 int calculateScore(int position)
 {
     int moves;     // Number of user moves
+    int kill;      // Number of user kill
     int i;         // Looping
     int baseScore; // Base score that's given to player based on winning position
 
@@ -4022,6 +4127,7 @@ int calculateScore(int position)
         if (!players[i].comp && players[i].col != 'n')
         {
             moves = players[i].move;
+            kill = players[i].kill;
         }
     }
 
@@ -4080,7 +4186,7 @@ int calculateScore(int position)
     }
 
     // Return the score
-    return baseScore - floor(moves / 4);
+    return (baseScore + (kill * 50)) - floor(moves / 4);
 }
 
 void showWin()
@@ -4177,10 +4283,48 @@ void showLose()
         }
     }
 
+    // Show exit
+    wattron(lose, A_REVERSE);
+    mvwprintw(lose, 8, getMiddleX(lose, strlen("Exit")), "Exit");
+    wattroff(lose, A_REVERSE);
+
     // Close the file and refresh the screen
     fclose(losing);
     wrefresh(lose);
 
     // Delete the window as it's not used anymore
     delwin(lose);
+}
+
+void newHighScoreMenu(int score)
+{
+    WINDOW *menu;  // The high score menu
+    char name[25]; // The inputted username
+
+    // Create the menu
+    menu = newWindow(7, 45, getMiddleX(stdscr, 45), 12);
+
+    // Show the user score and show that the score is a new highscore
+    mvwprintw(menu, 1, getMiddleX(menu, strlen("Your score is     ")), "Your score is %d", score);
+    mvwprintw(menu, 2, getMiddleX(menu, strlen("It's a new highscore!")), "It's a new highscore!");
+    mvwprintw(menu, 3, getMiddleX(menu, strlen("Put your user name down here")), "Put your user name down here");
+
+    // Move the cursor
+    curs_set(1);
+    echo();
+    wmove(menu, 4, getMiddleX(menu, 25));
+
+    // Button
+    wattron(menu, A_REVERSE);
+    mvwprintw(menu, 6, getMiddleX(menu, strlen("Enter and exit")), "Enter and exit");
+    wattroff(menu, A_REVERSE);
+
+    // Refresh the window
+    wrefresh(menu);
+
+    // User input
+    wscanw(menu, "%s", name);
+
+    // Input the data
+    writeHighScore(score, name);
 }
