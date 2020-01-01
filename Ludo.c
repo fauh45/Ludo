@@ -250,6 +250,11 @@ void initPlayerData(int botIndexes[3]);
 /*
     Initial State : Opponents in the index position are not known
     Final State : Opponents are known
+    Input :
+    @token the token that's going to be checked
+    @index the position that's going to be checked
+    Output:
+    @opponents[] the resulting opponents if any, or colour 'n' at index 0
     Author : Muhammad Fauzan L.
 */
 void getOpponents(Tokens token, Tokens opponents[], int index);
@@ -263,11 +268,11 @@ void getOpponents(Tokens token, Tokens opponents[], int index);
 int whosOpponents(char color);
 
 /*
-    Initial state = new turn
+    Initial state : New turn
     Input :
     @index the index of token that want to be initialize
-    Output = Initialize the token of player that take the turn
-    
+    Output : Initialize the token of player that take the turn
+    Author : Marissa Nur Amalia
 */
 Tokens getTokens(int index);
 
@@ -286,8 +291,8 @@ void moveToken(int diceNum, Tokens temp, char posmov, int numOfToken);
 
 /*
     Initial State : The token that want to be move not yet choosen
-    Input
-    @posmov[4] array of possible move of tokens that user have
+    Input :
+    @posmov[] array of possible move of tokens that user have
     Output : The token that want to be move is choosen
 */
 int getNumOfToken(char posmov[]);
@@ -299,19 +304,26 @@ int getNumOfToken(char posmov[]);
     @pos the token's position that want to check
     @safe is the token in the safe zone or not
     Output : the possibility of token to move, to out from home, or can't move
+             'm' means the token can move
+             'o' means the token can get out of the home base
+             's' means stuck
     Author : Marissa Nur Amalia
 */
 char possibleMove(int diceNum, int pos, bool safe);
 
 /*
     Initial State : User didn't know the possible move of token
-    Output : Get and show user possibility of token to move, to out from home, or can't move
+    Final State : Get and show user possibility of token to move, to out from home, or can't move
+    Input :
+    @temp[] array of token containing tokens that's going to be moved
+    @diceNum the current dice roll
+    Output :
+    @posmov the array of possible move of the token temp[]
     Author : Marissa Nur Amalia
 */
 void getPossibleMove(char posmov[], Tokens temp[], int diceNum);
 
 /*
-    Initial State : The input number of choice is want to be checked
     Input :
     @choice choice of tokens
     Output : is the choice valid or not
@@ -360,7 +372,7 @@ void moveToSafeZone(int numOfToken, int diceNum);
 
 /*
     Initial State : in the beginning of turn, the variable whosTurn
-    Final State : set the variable whosTurn in new turn (?)
+    Final State : set the variable whosTurn to the next turn
     Author : Marissa Nur Amalia
     Version : v.2
 */
@@ -374,15 +386,6 @@ void moveToNextTurn();
     Author : Muhammad Fauzan L.
 */
 bool isTransitionToSafezone(Tokens token, int diceroll);
-
-/*
-    Input : 
-    @token1 the first token
-    @token2 the second token
-    Output : Distance between first token and second token
-    Author : Muhammad Fauzan L.
-*/
-int distanceBetween(Tokens token1, Tokens token2);
 
 /*
     Initial State : Option box is not shown
@@ -488,14 +491,14 @@ int tokenCharToInt(char token);
 bool isGameOver();
 
 /*
-    Input : All bot's token
+    Input : None
     Output : is all bot win or not
     Author : Marissa Nur Amalia
 */
 bool isAllBotWin();
 
 /*
-    Input : User's token
+    Input : None
     Output : is user already win or not
     Author : Marissa Nur Amalia
 */
@@ -527,15 +530,15 @@ bool isItWin(int index);
 void showHighScore();
 
 /*
-    Initial State : The Highscore that contain new highscore isn't sorted
-    Final State : The Highscore that contain new highscore is sorted
+    Initial State : The Highscore file that contain new highscore isn't sorted
+    Final State : The Highscore file that contain new highscore is sorted
     Author : Marissa Nur Amalia
 */
 void sortHighScore();
 
 /*
     Initial State : The file that contain highscore is empty
-    Final State : The file that contain highscore is initialize with 10 highscore
+    Final State : The file that contain highscore is initialize with 10 highscore with score 0
     Author : Marissa Nur Amalia
 */
 void initHighScore();
@@ -559,7 +562,7 @@ void writeHighScore(int newHighScore, char usrname[]);
 bool isHighScore(int caHighScore);
 
 /*
-    Initial State : A turn haven't been played yet
+    Initial State : A turn haven't been played yet or coming from a turn before
     Final State : A turn is done
     Author : Muhammad Fauzan L.
 */
@@ -573,7 +576,7 @@ void aTurn();
 int getDiceRoll();
 
 /*
-    Initial State : User use the interrupt
+    Initial State : User raise the interrupt signal
     Final State : Exit, Save game, or both
     Input :
     @signum the signal number from the program
@@ -615,11 +618,11 @@ void saveGamestate();
 void getGameState();
 
 /*
- Input :
- @token the array of bot's token that want to checked
- @index the board number that want to checked
- Output : Is bot has opponents near the tokens
- Author : Marissa Nur Amalia
+    Input :
+    @token the array of bot's token that want to checked
+    @index the board number that want to checked
+    Output : Is bot has opponents near the tokens
+    Author : Marissa Nur Amalia
 */
 bool isBotHasOpponents(Tokens token, int index);
 
@@ -705,6 +708,10 @@ int main()
     init_pair(BOARD_YELLOW, COLOR_WHITE, COLOR_YELLOW);
     init_pair(BOARD_WHITE, COLOR_BLACK, COLOR_WHITE);
     init_pair(BOARD_BLACK, COLOR_WHITE, COLOR_BLACK);
+
+    // Set background to black
+    bkgd(COLOR_PAIR(BOARD_BLACK));
+    refresh();
 
     // Check for the highscore file
     if (!isFileExist("highscore.txt"))
@@ -3165,7 +3172,7 @@ void initHighScore()
     FILE *yey = fopen("highscore.txt", "wb");
     Score scr;
 
-    strncpy(scr.name, "Belum ada", 25);
+    strncpy(scr.name, "Belum_ada", 25);
     scr.score = 0;
 
     for (int i = 0; i < 10; i++)
@@ -4228,7 +4235,7 @@ void showLose()
 
     // As losing message is an ASCII art it's easier to print from a file
     // Open it as read-only
-    losing = fopen("win.txt", "r");
+    losing = fopen("lose.txt", "r");
 
     // File not found or cannot be openned
     if (losing == NULL)
@@ -4281,22 +4288,22 @@ void newHighScoreMenu(int score)
     char name[25]; // The inputted username
 
     // Create the menu
-    menu = newWindow(7, 45, getMiddleX(stdscr, 45), 12);
+    menu = newWindow(8, 45, getMiddleX(stdscr, 45), 12);
 
     // Show the user score and show that the score is a new highscore
     mvwprintw(menu, 1, getMiddleX(menu, strlen("Your score is     ")), "Your score is %d", score);
     mvwprintw(menu, 2, getMiddleX(menu, strlen("It's a new highscore!")), "It's a new highscore!");
     mvwprintw(menu, 3, getMiddleX(menu, strlen("Put your user name down here")), "Put your user name down here");
 
+    // Button
+    wattron(menu, A_REVERSE);
+    mvwprintw(menu, 7, getMiddleX(menu, strlen("Enter and exit")), "Enter and exit");
+    wattroff(menu, A_REVERSE);
+
     // Move the cursor
     curs_set(1);
     echo();
-    wmove(menu, 4, getMiddleX(menu, 25));
-
-    // Button
-    wattron(menu, A_REVERSE);
-    mvwprintw(menu, 6, getMiddleX(menu, strlen("Enter and exit")), "Enter and exit");
-    wattroff(menu, A_REVERSE);
+    wmove(menu, 5, getMiddleX(menu, 25));
 
     // Refresh the window
     wrefresh(menu);
