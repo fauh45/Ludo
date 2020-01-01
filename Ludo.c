@@ -109,14 +109,6 @@ int count = 0;
 /* Function Prototype */
 
 /*
-   Initial State : Screen contains other elements
-   Final State : Screen are clear
-   Note : Clear using system
-   Author : Muhammad Fauzan L.
-*/
-void ClearScreen();
-
-/*
    Initial State : Not waiting
    Final State : Waiting is complete
    Author : Muhammad Fauzan L.
@@ -1783,24 +1775,6 @@ void getOpponents(Tokens token, Tokens opponents[], int index)
 bool isTransitionToSafezone(Tokens token, int diceroll)
 {
     return (token.relpos + diceroll) > 51;
-}
-
-//int distanceBetween(Tokens token1, Tokens token2)
-//{
-//    int distance = 0; // Distance between token1 and 2
-//    int token1pos = token1.pos; // Temporary variable for positions
-//    int token2pos = token2.pos;
-//
-//    /* Add calculation here */
-//}
-
-void ClearScreen()
-{
-#ifdef _WIN32
-    System("cls");
-#else
-    system("clear");
-#endif
 }
 
 void WaitForSecond(int time)
