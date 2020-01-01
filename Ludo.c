@@ -4023,7 +4023,7 @@ int botMuller(char posmov[], Tokens temp[], int diceNum)
             getOpponents(temp[i], opponents, temp[i].pos + diceNum);
 
             // Prioritize token which are in range of other token
-            if (!isThereOpponentsBehind(temp[i], temp[i].pos) && opponents[0].col == 'n')
+            if (isThereOpponentsBehind(temp[i], temp[i].pos) && opponents[0].col == 'n')
             {
                 return i;
             }
